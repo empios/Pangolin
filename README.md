@@ -8,17 +8,6 @@ Open `index.html` in a browser. The demo pages live in `demos/`.
 
 Because this is a static site, no build step is required.
 
-## Deploy
-
-The simplest deployment path is GitHub Pages:
-
-1. Push the repository to GitHub.
-2. Open repository settings.
-3. Enable Pages from the repository root.
-4. Use `index.html` as the entry page.
-
-Any static host works as long as it serves the repository root.
-
 ## Project status
 
 Pangolin is an independent design-system study. It is useful as a visual prototype, documentation artifact, and static UI reference. It is not yet a versioned production framework or package.
