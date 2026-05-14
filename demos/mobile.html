@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en" data-theme="paper">
+<head>
+<meta charset="utf-8">
+<title>Pangolin · Mobile</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../pangolin/tokens.css">
+<link rel="stylesheet" href="../pangolin/base.css">
+<link rel="stylesheet" href="../pangolin/components.css">
+<style>
+  body { background: linear-gradient(180deg, #2C001E, #0D0008); min-height: 100vh; padding: 60px 24px; display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; }
+  .phone { width: 320px; height: 660px; background: var(--pg-warm-10); border-radius: 36px; border: 8px solid #1B1612; box-shadow: 0 40px 80px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.04); overflow: hidden; display: flex; flex-direction: column; position: relative; }
+  .phone .notch { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 100px; height: 22px; background: #1B1612; border-radius: 12px; z-index: 5; }
+  .status { padding: 12px 24px 4px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 600; color: var(--pg-text-primary); }
+  .status .icons { display: flex; gap: 4px; align-items: center; }
+  .scr-title { font-size: 11px; color: var(--pg-orange-30); text-align: center; padding: 12px 0 4px; font-family: var(--pg-font-mono); letter-spacing: 0.1em; }
+  .phone-label { color: var(--pg-warm-40); text-align: center; font-size: 12px; margin-top: 12px; font-family: var(--pg-font-mono); letter-spacing: 0.08em; }
+
+  /* Screen 1: Onboarding */
+  .ob { display: flex; flex-direction: column; height: 100%; padding: 60px 24px 24px; background: var(--pg-aubergine-80); color: #fff; }
+  .ob .mark { width: 64px; height: 64px; margin-bottom: 32px; }
+  .ob h1 { font-size: 1.875rem; line-height: 1.1; font-weight: 300; letter-spacing: -0.02em; margin-bottom: 12px; }
+  .ob h1 em { font-style: normal; color: var(--pg-orange-30); }
+  .ob p { color: var(--pg-warm-40); font-size: 14px; line-height: 1.5; margin-bottom: 32px; }
+  .ob .pill-row { display: flex; gap: 6px; margin-bottom: auto; }
+  .ob .pill-row span { height: 4px; flex: 1; border-radius: 2px; background: rgba(255,255,255,0.15); }
+  .ob .pill-row span.is { background: var(--pg-orange-50); flex: 2; }
+  .ob .bot { display: flex; flex-direction: column; gap: 12px; }
+  .ob .bot button { width: 100%; }
+
+  /* Screen 2: Dashboard */
+  .dash { display: flex; flex-direction: column; height: 100%; padding: 50px 16px 0; gap: 12px; }
+  .dash .hd { display: flex; justify-content: space-between; align-items: center; padding: 4px 4px 4px; }
+  .dash .hd h2 { font-size: 22px; font-weight: 400; letter-spacing: -0.01em; }
+  .dash .hd .pg-avatar { width: 30px; height: 30px; font-size: 11px; }
+  .dash .greet { font-size: 12px; color: var(--pg-text-secondary); margin-top: -8px; padding: 0 4px; }
+  .metric { background: var(--pg-aubergine-80); color: #fff; padding: 18px; border-radius: 12px; }
+  .metric .lb { font-size: 11px; color: var(--pg-orange-30); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+  .metric .vl { font-size: 2rem; font-weight: 300; letter-spacing: -0.02em; margin-top: 4px; }
+  .metric .dl { font-size: 12px; color: var(--pg-warm-40); margin-top: 2px; }
+  .metric svg { margin-top: 8px; }
+  .list { display: flex; flex-direction: column; gap: 8px; flex: 1; overflow: auto; }
+  .li { background: #fff; border: 1px solid var(--pg-warm-30); border-radius: 10px; padding: 12px; display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; }
+  .li .ic { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+  .li .t { font-size: 13px; font-weight: 500; }
+  .li .s { font-size: 11px; color: var(--pg-text-secondary); margin-top: 1px; }
+  .li time { font-size: 11px; color: var(--pg-text-placeholder); font-family: var(--pg-font-mono); }
+  .tabs { display: flex; padding: 8px 4px 16px; border-top: 1px solid var(--pg-warm-30); }
+  .tabs a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; color: var(--pg-text-secondary); text-decoration: none; }
+  .tabs a.is { color: var(--pg-orange-50); }
+  .tabs a svg { width: 20px; height: 20px; }
+
+  /* Screen 3: Alerts */
+  .alr { display: flex; flex-direction: column; height: 100%; padding: 50px 0 0; }
+  .alr .hd { padding: 8px 20px 12px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--pg-warm-30); }
+  .alr .hd .back { width: 30px; height: 30px; border-radius: 8px; background: var(--pg-warm-20); display: flex; align-items: center; justify-content: center; color: var(--pg-text-primary); }
+  .alr .hd h2 { font-size: 17px; font-weight: 600; flex: 1; }
+  .alr .filter-row { padding: 12px 16px 4px; display: flex; gap: 6px; overflow-x: auto; }
+  .alr .filter-row .pg-tag { white-space: nowrap; cursor: pointer; }
+  .alr .filter-row .pg-tag.is { background: var(--pg-aubergine-80); color: #fff; }
+  .feed { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 10px; flex: 1; overflow: auto; }
+  .item { background: #fff; border: 1px solid var(--pg-warm-30); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .item .top { display: flex; gap: 8px; align-items: center; }
+  .item .top .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .item .top .lev { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+  .item .top time { font-size: 11px; color: var(--pg-text-placeholder); margin-left: auto; }
+  .item h4 { font-size: 14px; font-weight: 600; line-height: 1.3; }
+  .item p { font-size: 12px; color: var(--pg-text-secondary); line-height: 1.4; }
+  .item .acts { display: flex; gap: 8px; margin-top: 4px; }
+  .item .acts button { flex: 1; font-size: 12px; }
+  @media (max-width: 420px) {
+    body { padding: 56px 12px 28px; gap: 28px; }
+    .phone { width: min(320px, calc(100vw - 24px)); height: 640px; }
+    .pg-demo-back { right: 12px; }
+  }
+</style>
+</head>
+<body data-screen-label="03 Mobile Demo">
+
+<a class="pg-btn pg-btn--secondary pg-btn--sm pg-demo-back" href="../index.html#demos" aria-label="Back to main page">
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M10 3L5 8l5 5"/></svg>
+  Main page
+</a>
+
+<div style="display: flex; flex-direction: column; align-items: center;">
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="ob">
+      <div class="status" style="color:#fff;"><span>9:41</span><div class="icons"><svg width="14" height="10" viewBox="0 0 14 10"><path d="M1 7h2v2H1zM4 5h2v4H4zM7 3h2v6H7zM10 1h2v8h-2z" fill="#fff"/></svg> <svg width="14" height="10" viewBox="0 0 16 10"><path d="M1 5a7 7 0 0 1 14 0M3 7a4 4 0 0 1 10 0M6 9a1 1 0 0 1 4 0" fill="none" stroke="#fff" stroke-width="1"/></svg> <svg width="20" height="10" viewBox="0 0 22 10"><rect x="0.5" y="0.5" width="18" height="9" rx="2" stroke="#fff" fill="none"/><rect x="2" y="2" width="14" height="6" rx="1" fill="#fff"/></svg></div></div>
+      <svg class="mark" viewBox="0 0 64 64"><g transform="translate(32 32)"><path d="M -18 18 A 25 25 0 0 1 18 -18" stroke="#E95420" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M -11 13 A 16 16 0 0 1 16 -11" stroke="#FF7848" stroke-width="4.5" fill="none" stroke-linecap="round"/><path d="M -4 8 A 10 10 0 0 1 10 -5" stroke="#FFAE85" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="10" cy="0" r="2.6" fill="#fff"/></g></svg>
+      <h1>Welcome to <em>pangolin.</em></h1>
+      <p>Run, watch, and steady your services from anywhere. Carbon's rigor, in your pocket.</p>
+      <div class="pill-row"><span class="is"></span><span></span><span></span><span></span></div>
+      <div class="bot">
+        <button class="pg-btn pg-btn--lg" style="background: var(--pg-orange-50); width:100%;">Get started</button>
+        <button class="pg-btn pg-btn--ghost" style="color:#fff; width:100%;">I have an account</button>
+      </div>
+    </div>
+  </div>
+  <div class="phone-label">01 · Onboarding</div>
+</div>
+
+<div style="display: flex; flex-direction: column; align-items: center;">
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="dash">
+      <div class="status"><span>9:41</span><div class="icons"><svg width="14" height="10" viewBox="0 0 14 10"><path d="M1 7h2v2H1zM4 5h2v4H4zM7 3h2v6H7zM10 1h2v8h-2z" fill="currentColor"/></svg> ●●●</div></div>
+      <div class="hd"><h2>Good morning</h2><div class="pg-avatar" style="background: var(--pg-orange-50);">EK</div></div>
+      <div class="greet">17 runners healthy · 2 alerts</div>
+      <div class="metric">
+        <div class="lb">Requests · last hour</div>
+        <div class="vl">1,284<span style="font-size: 12px; color: var(--pg-warm-40); margin-left: 6px;">/s</span></div>
+        <div class="dl">▲ 12.4% vs. yesterday</div>
+        <svg viewBox="0 0 280 50" preserveAspectRatio="none" style="width:100%;height:42px;">
+          <defs><linearGradient id="mg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#E95420" stop-opacity=".4"/><stop offset="1" stop-color="#E95420" stop-opacity="0"/></linearGradient></defs>
+          <polyline fill="url(#mg)" stroke="none" points="0,38 30,30 60,34 90,22 120,28 150,15 180,20 210,10 240,18 270,8 270,50 0,50"/>
+          <polyline fill="none" stroke="#FF7848" stroke-width="1.5" points="0,38 30,30 60,34 90,22 120,28 150,15 180,20 210,10 240,18 270,8"/>
+        </svg>
+      </div>
+      <div class="list">
+        <div class="li"><div class="ic" style="background: var(--pg-support-error-bg); color: var(--pg-red-60);"><svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="9" r="7"/><path d="M6 6l6 6M12 6l-6 6"/></svg></div><div><div class="t">runner-12 unreachable</div><div class="s">us-east-1a · health probe failed</div></div><time>4 m</time></div>
+        <div class="li"><div class="ic" style="background: var(--pg-support-warning-bg); color: var(--pg-amber-60);"><svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 1.5l8 14.5H1z"/><path d="M9 7v4"/></svg></div><div><div class="t">High memory · runner-07</div><div class="s">88% sustained for 3 min</div></div><time>1 m</time></div>
+        <div class="li"><div class="ic" style="background: var(--pg-support-info-bg); color: var(--pg-blue-60);"><svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 9a6 6 0 0 1 12 0M3 9l3-3M3 9l3 3"/></svg></div><div><div class="t">Deploy started · v0.1.7</div><div class="s">pangolin-runner · 6/17 done</div></div><time>2 m</time></div>
+        <div class="li"><div class="ic" style="background: var(--pg-support-success-bg); color: var(--pg-green-60);"><svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="9" r="7"/><path d="M6 9.5l2 2 4-4.5"/></svg></div><div><div class="t">Backup completed</div><div class="s">eu-west-1 · 42 GB · 38 s</div></div><time>22 m</time></div>
+      </div>
+      <div class="tabs">
+        <a class="is"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l7-6 7 6v8H3z"/></svg>Home</a>
+        <a><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="14" height="6"/><rect x="3" y="11" width="14" height="6"/></svg>Runners</a>
+        <a><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 9a5 5 0 0 1 10 0v4l1.5 2H3.5L5 13z"/></svg>Alerts</a>
+        <a><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="7" r="3"/><path d="M3 17a7 7 0 0 1 14 0"/></svg>Me</a>
+      </div>
+    </div>
+  </div>
+  <div class="phone-label">02 · Dashboard</div>
+</div>
+
+<div style="display: flex; flex-direction: column; align-items: center;">
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="alr">
+      <div class="status"><span>9:41</span><div class="icons">●●●</div></div>
+      <div class="hd">
+        <div class="back"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3L5 8l5 5"/></svg></div>
+        <h2>Alerts</h2>
+        <button class="pg-btn pg-btn--ghost pg-btn--sm" style="padding: 0 8px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h14l-5 7v5l-4 1v-6z"/></svg></button>
+      </div>
+      <div class="filter-row">
+        <span class="pg-tag is">All <b style="margin-left:4px;">14</b></span>
+        <span class="pg-tag">Critical <b style="margin-left:4px;">2</b></span>
+        <span class="pg-tag">Warning <b style="margin-left:4px;">5</b></span>
+        <span class="pg-tag">Info <b style="margin-left:4px;">7</b></span>
+      </div>
+      <div class="feed">
+        <div class="item">
+          <div class="top"><span class="dot" style="background:#C8240F;"></span><span class="lev" style="color:var(--pg-red-60);">Critical</span><time>4 m ago</time></div>
+          <h4>runner-12 unreachable</h4>
+          <p>Health probe failed in us-east-1a. The runner has been unreachable for 4 minutes and is dropping incoming jobs.</p>
+          <div class="acts"><button class="pg-btn pg-btn--secondary pg-btn--sm">Snooze</button><button class="pg-btn pg-btn--sm">Investigate</button></div>
+        </div>
+        <div class="item">
+          <div class="top"><span class="dot" style="background:#E68B00;"></span><span class="lev" style="color:var(--pg-amber-60);">Warning</span><time>1 m ago</time></div>
+          <h4>High memory · runner-07</h4>
+          <p>88% sustained for 3 min. Auto-scale will trigger in 2 min if pressure persists.</p>
+          <div class="acts"><button class="pg-btn pg-btn--secondary pg-btn--sm">Acknowledge</button><button class="pg-btn pg-btn--sm">View logs</button></div>
+        </div>
+        <div class="item">
+          <div class="top"><span class="dot" style="background:#E68B00;"></span><span class="lev" style="color:var(--pg-amber-60);">Warning</span><time>17 m ago</time></div>
+          <h4>API 5xx ratio elevated</h4>
+          <p>0.4% over a 5-minute window. SLO threshold is 0.2%.</p>
+        </div>
+        <div class="item">
+          <div class="top"><span class="dot" style="background:#2563CB;"></span><span class="lev" style="color:var(--pg-blue-60);">Info</span><time>22 m ago</time></div>
+          <h4>Backup completed · 42 GB</h4>
+          <p>eu-west-1 daily snapshot took 38 s.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="phone-label">03 · Alerts</div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,1779 @@
+<!doctype html>
+<html lang="en" data-theme="paper">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pangolin Design System</title>
+<link rel="stylesheet" href="pangolin/tokens.css">
+<link rel="stylesheet" href="pangolin/base.css">
+<link rel="stylesheet" href="pangolin/components.css">
+<style>
+  /* ---------- Page shell ---------- */
+  body { overflow-x: hidden; }
+  .doc {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    max-width: 1480px; margin: 0 auto;
+    gap: var(--pg-space-09);
+    padding: var(--pg-space-06) var(--pg-space-06) var(--pg-space-12);
+  }
+  @media (max-width: 960px) { .doc { grid-template-columns: 1fr; } .toc { display: none; } }
+
+  /* ---------- Top bar ---------- */
+  .top {
+    position: sticky; top: 0; z-index: 40;
+    display: flex; align-items: center; gap: var(--pg-space-04);
+    height: 56px;
+    padding: 0 var(--pg-space-06);
+    background: color-mix(in srgb, var(--pg-bg) 92%, transparent);
+    backdrop-filter: blur(12px) saturate(1.1);
+    -webkit-backdrop-filter: blur(12px) saturate(1.1);
+    border-bottom: 1px solid var(--pg-border-subtle-01);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; color: var(--pg-text-primary); text-decoration: none; }
+  .brand:hover { text-decoration: none; color: var(--pg-text-primary); }
+  .brand-mark { width: 28px; height: 28px; flex: none; }
+  .brand-name { font-weight: 700; letter-spacing: -0.01em; font-size: 15px; }
+  .brand-meta {
+    font-size: 0.6875rem; font-weight: 500; color: var(--pg-text-secondary);
+    padding: 2px 6px; border: 1px solid var(--pg-border-subtle-02); border-radius: 999px;
+    letter-spacing: 0.04em; text-transform: uppercase; margin-left: 4px;
+  }
+  .top-spacer { flex: 1; }
+  .top-link { color: var(--pg-text-secondary); font-size: var(--pg-fs-02); padding: 0 var(--pg-space-03); }
+  .top-link:hover { color: var(--pg-text-primary); text-decoration: none; }
+
+  /* ---------- Sidebar TOC ---------- */
+  .toc {
+    position: sticky; top: 72px;
+    height: max-content;
+    padding-top: var(--pg-space-06);
+    font-size: var(--pg-fs-01);
+  }
+  .toc-group { margin-bottom: var(--pg-space-05); }
+  .toc-label {
+    font-size: 0.625rem; font-weight: 600;
+    letter-spacing: var(--pg-tracking-caps);
+    text-transform: uppercase;
+    color: var(--pg-text-secondary);
+    padding: 0 var(--pg-space-03) var(--pg-space-02);
+  }
+  .toc-link {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px var(--pg-space-03);
+    color: var(--pg-text-secondary);
+    border-left: 2px solid transparent;
+    font-size: var(--pg-fs-02);
+    line-height: 1.3;
+  }
+  .toc-link:hover { color: var(--pg-text-primary); background: var(--pg-bg-hover); text-decoration: none; }
+  .toc-link.is-active {
+    color: var(--pg-text-primary);
+    border-left-color: var(--pg-orange-50);
+    background: var(--pg-bg-selected);
+    font-weight: 500;
+  }
+  .toc-num { font-family: var(--pg-font-mono); font-size: 0.625rem; color: var(--pg-text-placeholder); }
+
+  /* ---------- Section frame ---------- */
+  main { min-width: 0; }
+  section.chapter { padding: var(--pg-space-10) 0; border-top: 1px solid var(--pg-border-subtle-01); scroll-margin-top: 72px; }
+  section.chapter:first-of-type { border-top: 0; padding-top: 0; }
+  .chap-num {
+    font-family: var(--pg-font-mono);
+    font-size: 0.6875rem;
+    color: var(--pg-orange-60);
+    letter-spacing: 0.08em;
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-bottom: var(--pg-space-04);
+  }
+  .chap-num::after { content: ""; height: 1px; width: 24px; background: var(--pg-orange-50); display: inline-block; }
+  .chap-title {
+    font-size: var(--pg-fs-10);
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    margin-bottom: var(--pg-space-04);
+    text-wrap: balance;
+    color: var(--pg-text-primary);
+  }
+  .chap-lede {
+    font-size: var(--pg-fs-04);
+    font-weight: 300;
+    color: var(--pg-text-secondary);
+    line-height: 1.45;
+    max-width: 62ch;
+    margin-bottom: var(--pg-space-08);
+    text-wrap: pretty;
+  }
+  .sub-title {
+    font-size: var(--pg-fs-05);
+    font-weight: 500;
+    margin: var(--pg-space-08) 0 var(--pg-space-04);
+  }
+  .h-rule { display: flex; align-items: baseline; gap: var(--pg-space-04); margin: var(--pg-space-08) 0 var(--pg-space-05); }
+  .h-rule h3 { font-size: var(--pg-fs-04); font-weight: 600; }
+  .h-rule small { font-family: var(--pg-font-mono); font-size: var(--pg-fs-01); color: var(--pg-text-secondary); }
+  .h-rule::after { content: ""; flex: 1; height: 1px; background: var(--pg-border-subtle-01); }
+
+  /* ---------- Hero ---------- */
+  .hero { padding-top: var(--pg-space-09); }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--pg-font-mono); font-size: var(--pg-fs-01);
+    color: var(--pg-orange-60);
+    margin-bottom: var(--pg-space-05);
+  }
+  .hero-eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--pg-orange-50); }
+  .hero-title {
+    font-size: clamp(2.5rem, 6vw, 5.25rem);
+    line-height: 0.98;
+    font-weight: 200;
+    letter-spacing: -0.035em;
+    margin-bottom: var(--pg-space-05);
+    text-wrap: balance;
+    color: var(--pg-text-primary);
+  }
+  .hero-title em {
+    font-style: normal;
+    color: var(--pg-orange-60);
+    font-weight: 300;
+  }
+  [data-theme="terminal"] .hero-title em { color: var(--pg-orange-40); }
+  .hero-lede {
+    font-size: var(--pg-fs-05);
+    font-weight: 300;
+    color: var(--pg-text-secondary);
+    max-width: 56ch;
+    line-height: 1.45;
+    margin-bottom: var(--pg-space-07);
+    text-wrap: pretty;
+  }
+  .hero-actions { display: flex; gap: var(--pg-space-03); flex-wrap: wrap; margin-bottom: var(--pg-space-09); }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: var(--pg-space-06) var(--pg-space-07); font-size: var(--pg-fs-02); color: var(--pg-text-secondary); }
+  .hero-meta dt { font-size: 0.6875rem; text-transform: uppercase; letter-spacing: var(--pg-tracking-caps); color: var(--pg-text-placeholder); margin-bottom: 2px; font-weight: 600; }
+  .hero-meta dd { font-weight: 500; color: var(--pg-text-primary); margin: 0; }
+
+  /* Hero variant switcher */
+  .variants {
+    display: flex; gap: 6px;
+    margin: var(--pg-space-06) 0;
+    padding: 4px;
+    background: var(--pg-layer-02);
+    border: 1px solid var(--pg-border-subtle-01);
+    border-radius: var(--pg-radius-md);
+    width: max-content;
+  }
+  .variants button {
+    padding: 8px 14px;
+    font-size: var(--pg-fs-01);
+    font-weight: 500;
+    color: var(--pg-text-secondary);
+    border-radius: var(--pg-radius-sm);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    letter-spacing: 0.01em;
+  }
+  .variants button.is-active {
+    background: var(--pg-layer-01);
+    color: var(--pg-text-primary);
+    box-shadow: var(--pg-shadow-01);
+  }
+  .variants .num {
+    font-family: var(--pg-font-mono);
+    color: var(--pg-text-placeholder);
+    margin-right: 6px;
+  }
+  .variants button.is-active .num { color: var(--pg-orange-60); }
+
+  /* Hero composition shared */
+  .hero-stage {
+    margin-top: var(--pg-space-06);
+    border: 1px solid var(--pg-border-subtle-01);
+    border-radius: var(--pg-radius-lg);
+    overflow: hidden;
+    background: var(--pg-layer-01);
+    min-height: 460px;
+    position: relative;
+  }
+  [data-variant-panel][hidden] { display: none !important; }
+
+  /* Variant A — editorial */
+  .heroA {
+    padding: var(--pg-space-10) var(--pg-space-09);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: var(--pg-space-09);
+    min-height: 460px;
+    background:
+      radial-gradient(900px 500px at 90% 110%, color-mix(in srgb, var(--pg-orange-50) 14%, transparent), transparent 60%),
+      var(--pg-layer-01);
+  }
+  .heroA-wordmark {
+    font-size: clamp(5rem, 16vw, 13rem);
+    font-weight: 200;
+    letter-spacing: -0.055em;
+    line-height: 0.85;
+    color: var(--pg-text-primary);
+    margin: 0;
+  }
+  .heroA-wordmark span { color: var(--pg-orange-50); }
+  .heroA-side { text-align: right; font-size: var(--pg-fs-02); color: var(--pg-text-secondary); display: flex; flex-direction: column; gap: 4px; }
+  .heroA-side b { color: var(--pg-text-primary); font-weight: 600; }
+  .heroA-line { width: 60px; height: 1px; background: var(--pg-orange-50); margin: 8px 0 8px auto; }
+
+  /* Variant B — technical/tokens */
+  .heroB {
+    padding: var(--pg-space-08);
+    background: var(--pg-aubergine-90);
+    color: var(--pg-warm-10);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--pg-space-07);
+    min-height: 460px;
+    font-family: var(--pg-font-mono);
+  }
+  .heroB-left { display: flex; flex-direction: column; justify-content: space-between; }
+  .heroB-eyebrow { font-size: 0.6875rem; color: var(--pg-orange-30); letter-spacing: 0.1em; }
+  .heroB-h { font-family: var(--pg-font-sans); font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 300; line-height: 1; letter-spacing: -0.025em; color: #fff; }
+  .heroB-h em { font-style: normal; color: var(--pg-orange-40); }
+  .heroB-meta { font-size: var(--pg-fs-01); color: var(--pg-warm-50); line-height: 1.6; }
+  .heroB-meta b { color: var(--pg-warm-20); font-weight: 600; }
+  .heroB-tokens {
+    background: var(--pg-aubergine-80);
+    padding: var(--pg-space-05);
+    border-radius: var(--pg-radius-sm);
+    font-size: 11px;
+    line-height: 1.8;
+    overflow: hidden;
+  }
+  .heroB-tokens .tk-key { color: var(--pg-orange-30); }
+  .heroB-tokens .tk-val { color: var(--pg-warm-20); }
+  .heroB-tokens .tk-cm  { color: #847780; }
+  .heroB-tokens .row { display: flex; align-items: center; gap: 8px; }
+  .heroB-tokens .sw { width: 14px; height: 14px; border-radius: 3px; flex: none; border: 1px solid rgba(255,255,255,0.1); }
+
+  /* Variant C — brand block */
+  .heroC {
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    min-height: 460px;
+  }
+  .heroC-left {
+    background: var(--pg-aubergine-80);
+    color: var(--pg-warm-10);
+    padding: var(--pg-space-09);
+    display: flex; flex-direction: column; justify-content: space-between;
+    position: relative; overflow: hidden;
+  }
+  .heroC-left::before {
+    content: ""; position: absolute; right: -120px; top: -80px;
+    width: 380px; height: 380px;
+    background: radial-gradient(circle, var(--pg-orange-50), transparent 70%);
+    opacity: 0.5; filter: blur(20px);
+  }
+  .heroC-h { font-size: clamp(2.5rem, 5vw, 4.5rem); line-height: 0.98; font-weight: 200; letter-spacing: -0.03em; color: #fff; position: relative; }
+  .heroC-h em { font-style: normal; color: var(--pg-orange-30); }
+  .heroC-sub { color: var(--pg-warm-40); font-size: var(--pg-fs-04); max-width: 36ch; margin-top: var(--pg-space-05); position: relative; line-height: 1.5; }
+  .heroC-meta { display: flex; gap: var(--pg-space-06); font-family: var(--pg-font-mono); font-size: 11px; color: var(--pg-warm-50); position: relative; }
+  .heroC-meta b { color: #fff; font-weight: 600; }
+  .heroC-right {
+    background: var(--pg-warm-10);
+    padding: var(--pg-space-08);
+    display: flex; flex-direction: column; gap: var(--pg-space-05);
+    color: var(--pg-warm-100);
+  }
+  .heroC-right-h { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pg-warm-70); }
+
+  /* ---------- Color swatches ---------- */
+  .swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: var(--pg-space-03); }
+  .swatch {
+    border-radius: var(--pg-radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--pg-border-subtle-01);
+    background: var(--pg-layer-01);
+  }
+  .swatch-chip { height: 80px; }
+  .swatch-meta { padding: 10px 12px; font-size: var(--pg-fs-01); display: flex; flex-direction: column; gap: 2px; }
+  .swatch-name { font-weight: 600; color: var(--pg-text-primary); }
+  .swatch-hex { font-family: var(--pg-font-mono); color: var(--pg-text-secondary); font-size: 0.6875rem; }
+
+  /* Color scale strip */
+  .scale-strip { display: grid; grid-template-columns: repeat(9, 1fr); border-radius: var(--pg-radius-sm); overflow: hidden; }
+  .scale-cell { height: 56px; display: flex; align-items: flex-end; justify-content: flex-start; padding: 4px 6px; font-family: var(--pg-font-mono); font-size: 9px; }
+  .scale-cell.light-fg { color: rgba(255,255,255,0.85); }
+  .scale-cell.dark-fg  { color: rgba(0,0,0,0.55); }
+
+  /* Semantic tokens table */
+  .tokens-table { width: 100%; border-collapse: collapse; font-size: var(--pg-fs-02); }
+  .tokens-table th, .tokens-table td { padding: 10px var(--pg-space-04); text-align: left; border-bottom: 1px solid var(--pg-border-subtle-01); }
+  .tokens-table th { font-weight: 600; font-size: var(--pg-fs-01); color: var(--pg-text-secondary); }
+  .tokens-table td.tok { font-family: var(--pg-font-mono); font-size: 0.75rem; color: var(--pg-text-primary); }
+  .tokens-table td.val { font-family: var(--pg-font-mono); font-size: 0.6875rem; color: var(--pg-text-secondary); }
+  .tokens-table .chip { display: inline-block; width: 18px; height: 18px; border-radius: 4px; vertical-align: middle; margin-right: 8px; border: 1px solid rgba(0,0,0,0.08); }
+
+  /* Type specimen */
+  .specimen { display: flex; flex-direction: column; gap: var(--pg-space-05); }
+  .spec-row {
+    display: grid; grid-template-columns: 80px 1fr;
+    align-items: baseline;
+    gap: var(--pg-space-05);
+    padding-bottom: var(--pg-space-04);
+    border-bottom: 1px dashed var(--pg-border-subtle-01);
+  }
+  .spec-meta { font-family: var(--pg-font-mono); font-size: var(--pg-fs-01); color: var(--pg-text-secondary); }
+  .spec-meta b { display: block; color: var(--pg-text-primary); font-weight: 600; font-size: var(--pg-fs-02); }
+  .spec-sample { color: var(--pg-text-primary); }
+
+  .big-A {
+    font-size: 18rem;
+    font-weight: 200;
+    line-height: 0.85;
+    letter-spacing: -0.06em;
+    color: var(--pg-text-primary);
+  }
+  .big-A em { font-style: normal; color: var(--pg-orange-50); }
+  .charset {
+    font-size: var(--pg-fs-03);
+    line-height: 1.4;
+    color: var(--pg-text-secondary);
+    word-spacing: 0.1em;
+  }
+
+  /* Spacing */
+  .spacing-row { display: grid; grid-template-columns: 80px 80px 1fr; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--pg-border-subtle-01); gap: var(--pg-space-04); font-family: var(--pg-font-mono); font-size: var(--pg-fs-01); }
+  .spacing-bar { height: 12px; background: var(--pg-aubergine-80); border-radius: 2px; }
+  [data-theme="terminal"] .spacing-bar { background: var(--pg-orange-50); }
+
+  /* Radii */
+  .radii-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--pg-space-04); }
+  .radius-cell { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: var(--pg-space-04); border: 1px solid var(--pg-border-subtle-01); border-radius: var(--pg-radius-sm); background: var(--pg-layer-02); }
+  .radius-shape { width: 64px; height: 64px; background: var(--pg-aubergine-80); }
+  [data-theme="terminal"] .radius-shape { background: var(--pg-orange-50); }
+  .radius-label { font-family: var(--pg-font-mono); font-size: var(--pg-fs-01); color: var(--pg-text-secondary); text-align: center; }
+  .radius-label b { display: block; color: var(--pg-text-primary); font-size: var(--pg-fs-02); }
+
+  /* Shadows */
+  .shadow-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--pg-space-05); }
+  .shadow-cell { padding: var(--pg-space-06); background: var(--pg-layer-01); border-radius: var(--pg-radius-md); text-align: center; font-family: var(--pg-font-mono); font-size: var(--pg-fs-01); color: var(--pg-text-secondary); }
+  .shadow-cell b { display: block; color: var(--pg-text-primary); font-size: var(--pg-fs-02); margin-bottom: 4px; font-family: var(--pg-font-sans); font-weight: 600; }
+
+  /* Icon grid */
+  .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 2px; background: var(--pg-border-subtle-01); border: 1px solid var(--pg-border-subtle-01); border-radius: var(--pg-radius-md); overflow: hidden; }
+  .icon-cell { background: var(--pg-layer-01); padding: var(--pg-space-04) 6px; display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 10px; color: var(--pg-text-secondary); transition: background var(--pg-duration-fast-02); }
+  .icon-cell:hover { background: var(--pg-bg-hover); color: var(--pg-text-primary); }
+  .icon-cell svg { width: 20px; height: 20px; color: var(--pg-text-primary); }
+
+  /* Component blocks */
+  .comp-row { display: flex; gap: var(--pg-space-03); flex-wrap: wrap; align-items: center; }
+  .comp-frame {
+    padding: var(--pg-space-06);
+    background: var(--pg-layer-02);
+    border: 1px solid var(--pg-border-subtle-01);
+    border-radius: var(--pg-radius-md);
+  }
+  .comp-grid { display: grid; gap: var(--pg-space-05); }
+  .comp-grid-2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .comp-grid-3 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+
+  /* Brand mark display */
+  .brand-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: var(--pg-space-06); }
+  @media (max-width: 800px) { .brand-grid { grid-template-columns: 1fr; } }
+  .brand-card {
+    border-radius: var(--pg-radius-lg);
+    padding: var(--pg-space-08);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 280px;
+    gap: var(--pg-space-05);
+    overflow: hidden;
+    position: relative;
+  }
+  .brand-card.dark { background: var(--pg-aubergine-80); color: var(--pg-warm-10); }
+  .brand-card.light { background: var(--pg-warm-10); color: var(--pg-warm-100); border: 1px solid var(--pg-border-subtle-01); }
+  .brand-mark-lg { width: 120px; height: 120px; }
+  .brand-wordmark-lg { font-size: 3rem; font-weight: 700; letter-spacing: -0.025em; }
+  .brand-wordmark-lg + small { font-family: var(--pg-font-mono); font-size: var(--pg-fs-01); color: currentColor; opacity: 0.7; letter-spacing: 0.05em; }
+
+  /* Demo cards */
+  .demo-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--pg-space-05); }
+  .demo-card {
+    display: flex; flex-direction: column;
+    background: var(--pg-layer-01);
+    border: 1px solid var(--pg-border-subtle-01);
+    border-radius: var(--pg-radius-md);
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: transform var(--pg-duration-fast-02), border-color var(--pg-duration-fast-02), box-shadow var(--pg-duration-fast-02);
+  }
+  .demo-card:hover { color: inherit; text-decoration: none; transform: translateY(-2px); border-color: var(--pg-border-strong-01); box-shadow: var(--pg-shadow-03); }
+  .demo-card-thumb { aspect-ratio: 16/10; background: var(--pg-aubergine-90); position: relative; overflow: hidden; }
+  .demo-card-meta { padding: var(--pg-space-05) var(--pg-space-05); display: flex; flex-direction: column; gap: 4px; }
+  .demo-card-meta h4 { font-size: var(--pg-fs-04); font-weight: 600; color: var(--pg-text-primary); }
+  .demo-card-meta p { font-size: var(--pg-fs-02); color: var(--pg-text-secondary); line-height: 1.4; }
+  .demo-card-tag { font-family: var(--pg-font-mono); font-size: 0.6875rem; color: var(--pg-orange-60); }
+  @media (max-width: 520px) {
+    .doc { padding-inline: var(--pg-space-04); }
+    .top { padding-inline: var(--pg-space-04); }
+    .top-link { display: none; }
+    .brand-meta { display: none; }
+    .chap-title { font-size: var(--pg-fs-08); }
+    .hero-title { font-size: 2.5rem; }
+    .demo-cards { grid-template-columns: 1fr; }
+  }
+
+  /* Theme toggle */
+  .theme-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    height: 32px;
+    border-radius: 999px;
+    border: 1px solid var(--pg-border-subtle-02);
+    color: var(--pg-text-secondary);
+    background: var(--pg-layer-01);
+    font-size: var(--pg-fs-01);
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .theme-btn:hover { color: var(--pg-text-primary); border-color: var(--pg-border-strong-01); }
+  .theme-btn .knob { width: 14px; height: 14px; border-radius: 50%; background: var(--pg-orange-50); }
+
+  /* Footer */
+  .foot {
+    margin-top: var(--pg-space-12);
+    padding-top: var(--pg-space-06);
+    border-top: 1px solid var(--pg-border-subtle-01);
+    display: flex; justify-content: space-between; align-items: center;
+    color: var(--pg-text-secondary);
+    font-size: var(--pg-fs-01);
+    gap: var(--pg-space-05);
+    flex-wrap: wrap;
+  }
+  .foot-mono { font-family: var(--pg-font-mono); }
+
+  /* Mini app preview block */
+  .preview-window {
+    border-radius: var(--pg-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--pg-shadow-03);
+    border: 1px solid var(--pg-border-subtle-01);
+    background: var(--pg-layer-01);
+  }
+  .preview-titlebar {
+    height: 32px;
+    background: var(--pg-layer-02);
+    display: flex; align-items: center;
+    padding: 0 12px; gap: 8px;
+    border-bottom: 1px solid var(--pg-border-subtle-01);
+  }
+  .preview-titlebar .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .preview-titlebar .dot.r { background: #E95420; }
+  .preview-titlebar .dot.y { background: #E0B419; }
+  .preview-titlebar .dot.g { background: #5E8C61; }
+  .preview-titlebar .title { font-size: var(--pg-fs-01); color: var(--pg-text-secondary); margin-left: 8px; }
+
+  @media (max-width: 720px) {
+    body { overflow-x: hidden; }
+    .top {
+      height: 52px;
+      padding-inline: 12px;
+      gap: 10px;
+    }
+    .brand { min-width: 0; gap: 8px; }
+    .brand-name { font-size: 14px; }
+    .brand-meta,
+    .top-link { display: none; }
+    .theme-btn { flex: none; padding-inline: 10px; }
+
+    .doc {
+      display: block;
+      padding: 16px 12px 56px;
+    }
+    section.chapter {
+      padding: 48px 0;
+      scroll-margin-top: 60px;
+    }
+    .hero { padding-top: 24px; }
+    .hero-eyebrow {
+      font-size: 0.6875rem;
+      margin-bottom: 14px;
+    }
+    .hero-title {
+      font-size: 2.375rem;
+      line-height: 1.04;
+      letter-spacing: -0.02em;
+      margin-bottom: 18px;
+    }
+    .hero-lede {
+      font-size: 1.125rem;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    .hero-actions {
+      margin-bottom: 34px;
+      gap: 8px;
+    }
+    .hero-actions .pg-btn { flex: 1 1 145px; }
+    .hero-meta {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px 16px;
+    }
+
+    .chap-title {
+      font-size: 2.125rem;
+      line-height: 1.08;
+      letter-spacing: -0.015em;
+    }
+    .chap-lede {
+      font-size: 1rem;
+      margin-bottom: 28px;
+    }
+    .h-rule {
+      align-items: flex-start;
+      gap: 10px;
+      margin: 34px 0 18px;
+    }
+    .h-rule small { display: none; }
+    .sub-title { margin-top: 34px; }
+
+    .variants {
+      width: 100%;
+      overflow-x: auto;
+    }
+    .variants button {
+      flex: 1 0 auto;
+      padding-inline: 10px;
+      white-space: nowrap;
+    }
+    .variants .num { display: none; }
+    .hero-stage {
+      min-height: 0;
+      border-radius: var(--pg-radius-md);
+    }
+    .heroA {
+      grid-template-columns: 1fr;
+      min-height: 300px;
+      padding: 34px 22px;
+      gap: 28px;
+      align-items: start;
+    }
+    .heroA-wordmark {
+      font-size: clamp(3.75rem, 19vw, 5rem);
+      line-height: 0.88;
+    }
+    .heroA-side {
+      text-align: left;
+      align-items: flex-start;
+    }
+    .heroA-line { margin-left: 0; }
+    .heroB {
+      grid-template-columns: 1fr;
+      min-height: 0;
+      padding: 24px;
+      gap: 24px;
+    }
+    .heroB-h { font-size: 2.25rem; }
+    .heroB-tokens {
+      max-height: 220px;
+      overflow: auto;
+      scrollbar-color: var(--pg-aubergine-50) var(--pg-aubergine-80);
+    }
+    .heroC {
+      grid-template-columns: 1fr;
+      min-height: 0;
+    }
+    .heroC-left,
+    .heroC-right { padding: 26px 22px; }
+    .heroC-h { font-size: 2.5rem; }
+    .heroC-sub { font-size: 1rem; }
+    .heroC-meta {
+      flex-wrap: wrap;
+      gap: 14px 24px;
+      margin-top: 36px;
+    }
+
+    .swatch-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .swatch-chip { height: 58px; }
+    .scale-strip {
+      overflow-x: auto;
+      grid-template-columns: repeat(9, minmax(54px, 1fr));
+    }
+    .scale-cell { min-width: 54px; }
+
+    .brand-grid,
+    .comp-grid-2,
+    .comp-grid-3,
+    .demo-cards,
+    .preview-body {
+      grid-template-columns: 1fr;
+    }
+    .brand-card {
+      min-height: 220px;
+      padding: 28px;
+    }
+    .brand-mark-lg { width: 88px; height: 88px; }
+    .brand-wordmark-lg { font-size: 2.25rem; }
+
+    .comp-frame {
+      padding: 16px;
+      overflow-x: auto;
+    }
+    .comp-row {
+      align-items: stretch;
+    }
+    .comp-row .pg-btn { flex: 1 1 auto; }
+    .pg-field[style*="grid-column"] {
+      grid-column: auto !important;
+    }
+    .pg-table-toolbar {
+      align-items: stretch;
+    }
+    .pg-table-toolbar > div {
+      width: 100%;
+      flex-wrap: wrap;
+    }
+    .pg-table-toolbar .pg-input {
+      width: min(100%, 220px) !important;
+    }
+
+    .type-intro {
+      grid-template-columns: 1fr !important;
+      gap: 22px !important;
+      margin-bottom: 34px !important;
+    }
+    .big-A {
+      font-size: clamp(7.5rem, 42vw, 11rem);
+      letter-spacing: -0.04em;
+    }
+    .charset {
+      font-size: 0.875rem;
+      overflow-wrap: anywhere;
+    }
+    .spec-row {
+      grid-template-columns: 1fr;
+      gap: 8px;
+      align-items: start;
+    }
+    .spec-sample {
+      max-width: 100%;
+      overflow-wrap: anywhere;
+    }
+    .spec-sample[style*="4.75rem"] { font-size: 3rem !important; }
+    .spec-sample[style*="3.375rem"] { font-size: 2.375rem !important; }
+    .spec-sample[style*="2.625rem"] { font-size: 2rem !important; }
+
+    .spacing-row {
+      grid-template-columns: 46px 58px minmax(0, 1fr);
+      gap: 10px;
+    }
+    .radii-grid,
+    .shadow-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .radius-shape {
+      width: 54px;
+      height: 54px;
+    }
+    .icon-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .icon-cell {
+      min-width: 0;
+      overflow: hidden;
+    }
+    .icon-cell span {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .pg-appbar {
+      overflow-x: auto;
+    }
+    .pg-appbar-nav {
+      min-width: max-content;
+    }
+    .pg-tabs {
+      overflow-x: auto;
+    }
+    .pg-tab {
+      flex: none;
+      white-space: nowrap;
+    }
+    .pg-modal {
+      max-height: calc(100vh - 40px);
+      overflow: auto;
+    }
+    .pg-modal-foot {
+      flex-wrap: wrap;
+    }
+    .pg-modal-foot .pg-btn {
+      flex: 1 1 auto;
+    }
+    .tokens-table {
+      min-width: 520px;
+    }
+
+    .foot {
+      margin-top: 48px;
+      align-items: flex-start;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .doc { padding-inline: 10px; }
+    .hero-title { font-size: 2.125rem; }
+    .hero-lede { font-size: 1rem; }
+    .hero-meta { grid-template-columns: 1fr; }
+    .chap-title { font-size: 1.875rem; }
+    .swatch-grid,
+    .radii-grid,
+    .shadow-grid { grid-template-columns: 1fr; }
+    .theme-btn span:not(.knob) { display: none; }
+    .demo-card-tag {
+      overflow-wrap: anywhere;
+    }
+  }
+</style>
+</head>
+<body data-screen-label="Pangolin Showcase">
+
+<header class="top">
+  <a class="brand" href="#top">
+    <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+      <rect width="32" height="32" rx="7" fill="#2C001E"/>
+      <g transform="translate(16 16)">
+        <path d="M -8 8 A 11 11 0 0 1 8 -8" stroke="#E95420" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+        <path d="M -5 6 A 8 8 0 0 1 7 -5" stroke="#FF7848" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <path d="M -2 4 A 5 5 0 0 1 5 -3" stroke="#FFAE85" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <circle cx="5" cy="0" r="1.6" fill="#FAF7F4"/>
+      </g>
+    </svg>
+    <span class="brand-name">pangolin</span>
+    <span class="brand-meta">v0.1 · 2026</span>
+  </a>
+  <div class="top-spacer"></div>
+  <a class="top-link" href="#components">Components</a>
+  <a class="top-link" href="#tokens">Tokens</a>
+  <a class="top-link" href="#demos">Demos</a>
+  <button class="theme-btn" id="theme-btn" type="button">
+    <span class="knob"></span>
+    <span id="theme-label">Paper</span>
+  </button>
+</header>
+
+<div class="doc" id="top">
+
+  <!-- ============ Sidebar TOC ============ -->
+  <nav class="toc" aria-label="Table of contents">
+    <div class="toc-group">
+      <div class="toc-label">Start</div>
+      <a class="toc-link" href="#overview"><span class="toc-num">01</span> Overview</a>
+      <a class="toc-link" href="#brand"><span class="toc-num">02</span> Brand identity</a>
+    </div>
+    <div class="toc-group">
+      <div class="toc-label">Foundations</div>
+      <a class="toc-link" href="#color"><span class="toc-num">03</span> Color</a>
+      <a class="toc-link" href="#type"><span class="toc-num">04</span> Type</a>
+      <a class="toc-link" href="#spacing"><span class="toc-num">05</span> Spacing &amp; shape</a>
+      <a class="toc-link" href="#motion"><span class="toc-num">06</span> Motion</a>
+      <a class="toc-link" href="#icons"><span class="toc-num">07</span> Iconography</a>
+    </div>
+    <div class="toc-group">
+      <div class="toc-label">Components</div>
+      <a class="toc-link" href="#components"><span class="toc-num">08</span> Library</a>
+      <a class="toc-link" href="#patterns"><span class="toc-num">09</span> Patterns</a>
+    </div>
+    <div class="toc-group">
+      <div class="toc-label">Reference</div>
+      <a class="toc-link" href="#tokens"><span class="toc-num">10</span> Semantic tokens</a>
+      <a class="toc-link" href="#demos"><span class="toc-num">11</span> Demos</a>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ============ Chapter: HERO / OVERVIEW ============ -->
+    <section class="chapter hero" id="overview">
+      <div class="hero-eyebrow">
+        <span class="dot"></span>
+        <span>pangolin / design-system / v0.1</span>
+      </div>
+      <h1 class="hero-title">
+        A design system for <em>Linux-flavored</em> applications.
+      </h1>
+      <p class="hero-lede">
+        Pangolin is a synthesis. It takes the token rigor, density and component
+        vocabulary of <b>IBM Carbon</b>, then drapes it in <b>Ubuntu's</b> warm aubergine,
+        Ubuntu, and the humanist softness of Yaru. Built for desktop apps,
+        web products, observability dashboards, and the occasional manifesto.
+      </p>
+      <div class="hero-actions">
+        <a class="pg-btn" href="#brand">Start exploring</a>
+        <a class="pg-btn pg-btn--secondary" href="#tokens">Browse tokens</a>
+        <a class="pg-btn pg-btn--ghost" href="demos/dashboard.html">View a demo →</a>
+      </div>
+
+      <dl class="hero-meta">
+        <div><dt>System version</dt><dd>0.1.0 · 2026</dd></div>
+        <div><dt>Tokens</dt><dd>148 semantic · 2 themes</dd></div>
+        <div><dt>Components</dt><dd>22 primitives · 9 patterns</dd></div>
+        <div><dt>Primary surfaces</dt><dd>Desktop · Web · Mobile</dd></div>
+        <div><dt>Typeface</dt><dd>Ubuntu · Dalton Maag, 2010</dd></div>
+      </dl>
+
+      <!-- Hero variants -->
+      <div class="h-rule">
+        <h3>Direction studies</h3>
+        <small>3 variants — pick a direction</small>
+      </div>
+      <div class="variants" role="tablist">
+        <button role="tab" aria-selected="true" data-variant="A"><span class="num">A</span>Editorial</button>
+        <button role="tab" aria-selected="false" data-variant="B"><span class="num">B</span>Technical</button>
+        <button role="tab" aria-selected="false" data-variant="C"><span class="num">C</span>Brand block</button>
+      </div>
+
+      <div class="hero-stage">
+        <!-- A: Editorial -->
+        <div class="heroA" data-variant-panel="A">
+          <h2 class="heroA-wordmark">pangolin<span>.</span></h2>
+          <div class="heroA-side">
+            <span>An operator's design system</span>
+            <span>for the warm, the precise,</span>
+            <span><b>and the curl-and-resist</b></span>
+            <div class="heroA-line"></div>
+            <span class="foot-mono" style="font-family: var(--pg-font-mono); font-size: 11px;">EST. 2026 · UBUNTU-INSPIRED · CARBON-STYLE</span>
+          </div>
+        </div>
+
+        <!-- B: Technical -->
+        <div class="heroB" data-variant-panel="B" hidden>
+          <div class="heroB-left">
+            <div>
+              <div class="heroB-eyebrow">// pangolin.tokens@0.1</div>
+              <h2 class="heroB-h">Tokens you can <em>read aloud.</em></h2>
+              <p class="heroB-meta" style="margin-top: 24px;">
+                <b>148</b> semantic tokens across two themes.<br>
+                Carbon's nomenclature, Ubuntu's palette.<br>
+                Drop-in CSS variables; no build step required.
+              </p>
+            </div>
+            <p class="heroB-meta" style="font-family: var(--pg-font-mono); font-size: 11px;">
+              <b>$ npm i @pangolin/core</b><br>
+              <span style="color:#FFB347;">$ pangolin compose --theme=paper</span>
+            </p>
+          </div>
+          <div class="heroB-tokens">
+            <div class="row"><span class="sw" style="background:#2C001E"></span><span class="tk-key">--pg-button-primary</span>: <span class="tk-val">#2C001E</span>;</div>
+            <div class="row"><span class="sw" style="background:#E95420"></span><span class="tk-key">--pg-focus</span>: <span class="tk-val">#E95420</span>;</div>
+            <div class="row"><span class="sw" style="background:#FAF7F4"></span><span class="tk-key">--pg-bg</span>: <span class="tk-val">#FAF7F4</span>;</div>
+            <div class="row"><span class="sw" style="background:#1B1612"></span><span class="tk-key">--pg-text-primary</span>: <span class="tk-val">#1B1612</span>;</div>
+            <div class="row"><span class="sw" style="background:#77216F"></span><span class="tk-key">--pg-link-primary</span>: <span class="tk-val">#77216F</span>;</div>
+            <div class="row"><span class="sw" style="background:#C8240F"></span><span class="tk-key">--pg-support-error</span>: <span class="tk-val">#C8240F</span>;</div>
+            <div style="margin-top: 12px;"><span class="tk-cm">// type scale — productive</span></div>
+            <div><span class="tk-key">--pg-fs-02</span>: <span class="tk-val">0.875rem</span>; <span class="tk-cm">/* body */</span></div>
+            <div><span class="tk-key">--pg-fs-08</span>: <span class="tk-val">2rem</span>;</div>
+            <div><span class="tk-key">--pg-fs-11</span>: <span class="tk-val">3.375rem</span>;</div>
+            <div style="margin-top: 12px;"><span class="tk-cm">// spacing — 4px grid</span></div>
+            <div><span class="tk-key">--pg-space-03</span>: <span class="tk-val">8px</span>;</div>
+            <div><span class="tk-key">--pg-space-05</span>: <span class="tk-val">16px</span>;</div>
+            <div><span class="tk-key">--pg-space-07</span>: <span class="tk-val">32px</span>;</div>
+          </div>
+        </div>
+
+        <!-- C: Brand block -->
+        <div class="heroC" data-variant-panel="C" hidden>
+          <div class="heroC-left">
+            <div>
+              <div style="font-family: var(--pg-font-mono); font-size: 11px; color: var(--pg-orange-30); letter-spacing: 0.08em; margin-bottom: 18px;">PANGOLIN /01</div>
+              <h2 class="heroC-h">Curl, <em>resist,</em><br>scale.</h2>
+              <p class="heroC-sub">
+                The pangolin's armor is a system: identical scales, varied positions, perfect resilience.
+                So's a design system worth building.
+              </p>
+            </div>
+            <div class="heroC-meta">
+              <span><b>22</b> components</span>
+              <span><b>148</b> tokens</span>
+              <span><b>2</b> themes</span>
+              <span><b>Ubuntu</b> · Dalton Maag</span>
+            </div>
+          </div>
+          <div class="heroC-right">
+            <span class="heroC-right-h">Hello from the brand side</span>
+            <h3 style="font-size: 2rem; line-height: 1.1; font-weight: 400; color: var(--pg-warm-100); letter-spacing: -0.015em;">
+              A warm, structured, Linux-native UI kit.
+            </h3>
+            <p style="color: var(--pg-warm-70); font-size: var(--pg-fs-03); line-height: 1.5;">
+              Pangolin doesn't fight Ubuntu's heritage or Carbon's logic. It uses both —
+              one for tone, the other for tooling.
+            </p>
+            <div style="display: flex; gap: 12px; margin-top: 12px;">
+              <a class="pg-btn pg-btn--accent" href="#brand">Read the manifest</a>
+              <a class="pg-btn pg-btn--ghost" href="#tokens">Download tokens</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Chapter: BRAND ============ -->
+    <section class="chapter" id="brand">
+      <div class="chap-num">02 · BRAND IDENTITY</div>
+      <h2 class="chap-title">A mark for curl &amp; resist.</h2>
+      <p class="chap-lede">
+        Pangolins curl when threatened — three nested arcs into a tight spiral, perfectly tessellated. The Pangolin mark is that gesture: three concentric arcs in the Ubuntu palette, anchored by a single bright point. Together they read as motion, structure, and the iconic Ubuntu "circle of friends" — re-tuned.
+      </p>
+
+      <div class="brand-grid">
+        <div class="brand-card dark">
+          <svg class="brand-mark-lg" viewBox="0 0 120 120" aria-hidden="true">
+            <g transform="translate(60 60)">
+              <path d="M -36 36 A 50 50 0 0 1 36 -36" stroke="#E95420" stroke-width="10" fill="none" stroke-linecap="round"/>
+              <path d="M -22 26 A 34 34 0 0 1 32 -22" stroke="#FF7848" stroke-width="9" fill="none" stroke-linecap="round"/>
+              <path d="M -8 16 A 20 20 0 0 1 20 -10" stroke="#FFAE85" stroke-width="8" fill="none" stroke-linecap="round"/>
+              <circle cx="20" cy="0" r="5.5" fill="#FAF7F4"/>
+            </g>
+          </svg>
+          <div style="text-align: center;">
+            <div class="brand-wordmark-lg" style="color: var(--pg-warm-10);">pangolin</div>
+            <small style="color: var(--pg-orange-30);">UBUNTU-INSPIRED · CARBON-STYLE</small>
+          </div>
+        </div>
+        <div class="brand-card light">
+          <div style="display: flex; flex-direction: column; gap: 20px; width: 100%; padding: 0 20px;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+              <svg width="56" height="56" viewBox="0 0 120 120"><rect width="120" height="120" rx="26" fill="#2C001E"/><g transform="translate(60 60)"><path d="M -36 36 A 50 50 0 0 1 36 -36" stroke="#E95420" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M -22 26 A 34 34 0 0 1 32 -22" stroke="#FF7848" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M -8 16 A 20 20 0 0 1 20 -10" stroke="#FFAE85" stroke-width="8" fill="none" stroke-linecap="round"/><circle cx="20" cy="0" r="5.5" fill="#FAF7F4"/></g></svg>
+              <div style="line-height: 1.1;">
+                <div style="font-weight: 700; font-size: 1.5rem; letter-spacing: -0.02em;">pangolin</div>
+                <small style="color: var(--pg-text-secondary); font-family: var(--pg-font-mono); font-size: 10px; letter-spacing: 0.06em;">v0.1 — paper theme</small>
+              </div>
+            </div>
+            <div style="height: 1px; background: var(--pg-border-subtle-01);"></div>
+            <div style="font-size: 11px; color: var(--pg-text-secondary); line-height: 1.6; font-family: var(--pg-font-mono);">
+              MARK · 32 / 56 / 120<br>
+              CLEAR SPACE · 0.5× cap height<br>
+              MIN SIZE · 20px digital<br>
+              LOCKUP · horizontal + stacked<br>
+              <span style="color: var(--pg-orange-60);">DON'T</span> · re-color, stretch, fill the arcs
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <a class="pg-btn pg-btn--secondary pg-btn--sm" href="#">Download SVG</a>
+              <a class="pg-btn pg-btn--ghost pg-btn--sm" href="#">Brand do's &amp; don'ts</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="h-rule"><h3>Mark behavior</h3><small>3 sizes · 4 backgrounds</small></div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
+        <!-- Variants -->
+        <div style="background:#2C001E; border-radius: 8px; aspect-ratio: 1; display:flex;align-items:center;justify-content:center;">
+          <svg width="60" height="60" viewBox="0 0 32 32"><g transform="translate(16 16)"><path d="M -8 8 A 11 11 0 0 1 8 -8" stroke="#E95420" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M -5 6 A 8 8 0 0 1 7 -5" stroke="#FF7848" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M -2 4 A 5 5 0 0 1 5 -3" stroke="#FFAE85" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="5" cy="0" r="1.6" fill="#FAF7F4"/></g></svg>
+        </div>
+        <div style="background:#FAF7F4; border:1px solid var(--pg-border-subtle-01); border-radius: 8px; aspect-ratio: 1; display:flex;align-items:center;justify-content:center;">
+          <svg width="60" height="60" viewBox="0 0 32 32"><g transform="translate(16 16)"><path d="M -8 8 A 11 11 0 0 1 8 -8" stroke="#2C001E" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M -5 6 A 8 8 0 0 1 7 -5" stroke="#77216F" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M -2 4 A 5 5 0 0 1 5 -3" stroke="#E95420" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="5" cy="0" r="1.6" fill="#2C001E"/></g></svg>
+        </div>
+        <div style="background:#E95420; border-radius: 8px; aspect-ratio: 1; display:flex;align-items:center;justify-content:center;">
+          <svg width="60" height="60" viewBox="0 0 32 32"><g transform="translate(16 16)"><path d="M -8 8 A 11 11 0 0 1 8 -8" stroke="#FFFFFF" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M -5 6 A 8 8 0 0 1 7 -5" stroke="#FFFFFF" stroke-width="2.2" opacity="0.7" fill="none" stroke-linecap="round"/><path d="M -2 4 A 5 5 0 0 1 5 -3" stroke="#FFFFFF" stroke-width="2" opacity="0.5" fill="none" stroke-linecap="round"/><circle cx="5" cy="0" r="1.6" fill="#2C001E"/></g></svg>
+        </div>
+        <div style="background:#77216F; border-radius: 8px; aspect-ratio: 1; display:flex;align-items:center;justify-content:center;">
+          <svg width="60" height="60" viewBox="0 0 32 32"><g transform="translate(16 16)"><path d="M -8 8 A 11 11 0 0 1 8 -8" stroke="#FFAE85" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M -5 6 A 8 8 0 0 1 7 -5" stroke="#FF7848" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M -2 4 A 5 5 0 0 1 5 -3" stroke="#E95420" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="5" cy="0" r="1.6" fill="#FAF7F4"/></g></svg>
+        </div>
+      </div>
+
+      <div class="h-rule"><h3>Wordmark</h3><small>Ubuntu Bold, -3.5% tracking, lowercase</small></div>
+      <div style="background: var(--pg-layer-01); border: 1px solid var(--pg-border-subtle-01); border-radius: var(--pg-radius-lg); padding: var(--pg-space-09); text-align: center;">
+        <div style="font-size: clamp(3rem, 9vw, 7rem); font-weight: 700; letter-spacing: -0.035em; line-height: 1; color: var(--pg-text-primary);">pangolin</div>
+        <div style="font-family: var(--pg-font-mono); font-size: var(--pg-fs-01); color: var(--pg-text-secondary); margin-top: 12px; letter-spacing: 0.08em;">U B U N T U - I N S P I R E D   ·   C A R B O N - S T Y L E</div>
+      </div>
+    </section>
+
+    <!-- ============ Chapter: COLOR ============ -->
+    <section class="chapter" id="color">
+      <div class="chap-num">03 · COLOR</div>
+      <h2 class="chap-title">Aubergine for authority. Orange for the spark.</h2>
+      <p class="chap-lede">
+        The palette is two-and-a-half colors plus a deep neutral. Aubergine carries Ubuntu's heritage and does the heavy lifting of the brand. Orange is reserved for moments that matter: focus, selection, hover hints, charts, the occasional CTA. Warm grey replaces Carbon's cool greys throughout, so the system stays human even at 14px.
+      </p>
+
+      <div class="h-rule"><h3>Aubergine</h3><small>--pg-aubergine-{10…100} · brand spine</small></div>
+      <div class="scale-strip">
+        <div class="scale-cell light-fg" style="background:#F5EAF1"><span style="color:#2C001E">10</span></div>
+        <div class="scale-cell light-fg" style="background:#E0BFD6"><span style="color:#2C001E">20</span></div>
+        <div class="scale-cell light-fg" style="background:#B98AAA"><span style="color:#2C001E">30</span></div>
+        <div class="scale-cell light-fg" style="background:#8E5279">40</div>
+        <div class="scale-cell light-fg" style="background:#77216F">50</div>
+        <div class="scale-cell light-fg" style="background:#5A0F4D">60</div>
+        <div class="scale-cell light-fg" style="background:#44032E">70</div>
+        <div class="scale-cell light-fg" style="background:#2C001E">80 · base</div>
+        <div class="scale-cell light-fg" style="background:#0D0008">100</div>
+      </div>
+
+      <div class="h-rule"><h3>Ubuntu Orange</h3><small>--pg-orange-{10…90} · accent &amp; spark</small></div>
+      <div class="scale-strip">
+        <div class="scale-cell dark-fg" style="background:#FFEFE6">10</div>
+        <div class="scale-cell dark-fg" style="background:#FFD4BD">20</div>
+        <div class="scale-cell dark-fg" style="background:#FFAE85">30</div>
+        <div class="scale-cell dark-fg" style="background:#FF7848">40</div>
+        <div class="scale-cell light-fg" style="background:#E95420">50 · base</div>
+        <div class="scale-cell light-fg" style="background:#C8420A">60</div>
+        <div class="scale-cell light-fg" style="background:#A8370A">70</div>
+        <div class="scale-cell light-fg" style="background:#7E2807">80</div>
+        <div class="scale-cell light-fg" style="background:#511904">90</div>
+      </div>
+
+      <div class="h-rule"><h3>Warm neutral</h3><small>--pg-warm-{10…100} · everywhere a grey would go</small></div>
+      <div class="scale-strip">
+        <div class="scale-cell dark-fg" style="background:#FAF7F4">10</div>
+        <div class="scale-cell dark-fg" style="background:#F2EEE9">20</div>
+        <div class="scale-cell dark-fg" style="background:#E8E2DA">30</div>
+        <div class="scale-cell dark-fg" style="background:#DCD4CA">40</div>
+        <div class="scale-cell dark-fg" style="background:#BFB5A8">50</div>
+        <div class="scale-cell light-fg" style="background:#8E867E">60</div>
+        <div class="scale-cell light-fg" style="background:#6B6259">70</div>
+        <div class="scale-cell light-fg" style="background:#4A433C">80</div>
+        <div class="scale-cell light-fg" style="background:#1B1612">100</div>
+      </div>
+
+      <div class="h-rule"><h3>Status</h3><small>error / warning / success / info — warmed Carbon swatches</small></div>
+      <div class="swatch-grid">
+        <div class="swatch"><div class="swatch-chip" style="background:#C8240F"></div><div class="swatch-meta"><span class="swatch-name">Error</span><span class="swatch-hex">#C8240F · --pg-red-50</span></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:#E68B00"></div><div class="swatch-meta"><span class="swatch-name">Warning</span><span class="swatch-hex">#E68B00 · --pg-amber-50</span></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:#1D7A4B"></div><div class="swatch-meta"><span class="swatch-name">Success</span><span class="swatch-hex">#1D7A4B · --pg-green-50</span></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:#2563CB"></div><div class="swatch-meta"><span class="swatch-name">Info</span><span class="swatch-hex">#2563CB · --pg-blue-50</span></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:#A21F6F"></div><div class="swatch-meta"><span class="swatch-name">Magenta</span><span class="swatch-hex">#A21F6F · accent</span></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:#117C7C"></div><div class="swatch-meta"><span class="swatch-name">Teal</span><span class="swatch-hex">#117C7C · accent</span></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:#5E8C61"></div><div class="swatch-meta"><span class="swatch-name">Sage</span><span class="swatch-hex">#5E8C61 · accent</span></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:#1B3A4B"></div><div class="swatch-meta"><span class="swatch-name">Prussian</span><span class="swatch-hex">#1B3A4B · accent</span></div></div>
+      </div>
+    </section>
+
+    <!-- ============ Chapter: TYPE ============ -->
+    <section class="chapter" id="type">
+      <div class="chap-num">04 · TYPE</div>
+      <h2 class="chap-title">Ubuntu, set to a Carbon scale.</h2>
+      <p class="chap-lede">
+        Type pairs <b>Ubuntu</b> (Dalton Maag, 2010 — humanist, distinctly Canonical) with <b>Ubuntu Mono</b> for code, terminals, and quantitative readouts. The scale is Carbon's productive set: 12 → 76 px, with 14 px as the workhorse body. Body lines breathe at 1.5 leading; display lines tighten to 1.0–1.2.
+      </p>
+
+      <div class="type-intro" style="display: grid; grid-template-columns: 1fr 1.4fr; gap: var(--pg-space-09); align-items: end; margin-bottom: var(--pg-space-08);">
+        <div class="big-A">A<em>a</em></div>
+        <div>
+          <div class="pg-overline" style="margin-bottom: 16px;">Ubuntu — Light 300 · Regular 400 · Medium 500 · Bold 700 · italic</div>
+          <p class="charset">
+            A B C D E F G H I J K L M N O P Q R S T U V W X Y Z<br>
+            a b c d e f g h i j k l m n o p q r s t u v w x y z<br>
+            0 1 2 3 4 5 6 7 8 9 — ! ? &amp; @ # § ¶ ★ <span style="font-family: var(--pg-font-mono);">→ ← ↑ ↓ ⌘ ⌥</span>
+          </p>
+          <p style="margin-top: 16px; font-style: italic; color: var(--pg-text-secondary); font-size: var(--pg-fs-03);">
+            "The pangolin curls. The system holds." — Pangolin readme, line 1.
+          </p>
+        </div>
+      </div>
+
+      <div class="h-rule"><h3>Productive type scale</h3><small>--pg-fs-01 … --pg-fs-12</small></div>
+      <div class="specimen">
+        <div class="spec-row"><div class="spec-meta"><b>76</b> --pg-fs-12<br>300 / 1.0</div><div class="spec-sample" style="font-size: 4.75rem; font-weight: 300; letter-spacing: -0.02em; line-height: 1;">Display 01</div></div>
+        <div class="spec-row"><div class="spec-meta"><b>54</b> --pg-fs-11<br>300 / 1.0</div><div class="spec-sample" style="font-size: 3.375rem; font-weight: 300; letter-spacing: -0.02em; line-height: 1.05;">Display 02 — pangolins curl</div></div>
+        <div class="spec-row"><div class="spec-meta"><b>42</b> --pg-fs-10<br>300 / 1.1</div><div class="spec-sample" style="font-size: 2.625rem; font-weight: 300; line-height: 1.15;">Heading 01 — anatomy of a scale</div></div>
+        <div class="spec-row"><div class="spec-meta"><b>32</b> --pg-fs-08<br>500 / 1.2</div><div class="spec-sample" style="font-size: 2rem; font-weight: 500; line-height: 1.2;">Heading 03 — anatomy of a scale</div></div>
+        <div class="spec-row"><div class="spec-meta"><b>24</b> --pg-fs-06<br>500 / 1.3</div><div class="spec-sample" style="font-size: 1.5rem; font-weight: 500; line-height: 1.3;">Heading 05 — twenty-three nested arcs</div></div>
+        <div class="spec-row"><div class="spec-meta"><b>20</b> --pg-fs-05<br>400 / 1.4</div><div class="spec-sample" style="font-size: 1.25rem; line-height: 1.4;">Body Large — for short editorial passages and ledes; reads like a quiet voice across the table.</div></div>
+        <div class="spec-row"><div class="spec-meta"><b>16</b> --pg-fs-03<br>400 / 1.5</div><div class="spec-sample" style="font-size: 1rem; line-height: 1.5;">Body Medium — the default for long-form reading. Set at 16 px when the line measure is comfortable; ideal for product docs and dialogs.</div></div>
+        <div class="spec-row"><div class="spec-meta"><b>14</b> --pg-fs-02<br>400 / 1.5</div><div class="spec-sample" style="font-size: 0.875rem; line-height: 1.5;">Body — the workhorse. Used in tables, lists, dense product UI. 14 px Ubuntu Sans is legible at the densities Carbon products demand.</div></div>
+        <div class="spec-row"><div class="spec-meta"><b>12</b> --pg-fs-01<br>500 / 1.5</div><div class="spec-sample" style="font-size: 0.75rem; line-height: 1.5; font-weight: 500;">Label — form labels, metadata, captions, status pills.</div></div>
+        <div class="spec-row"><div class="spec-meta"><b>11</b> overline<br>600 / 1.4 · uppercase</div><div class="spec-sample pg-overline" style="font-size: 0.6875rem;">OVERLINE — RESERVED FOR SECTION HEADERS &amp; EYEBROWS</div></div>
+        <div class="spec-row"><div class="spec-meta"><b>14</b> --pg-fs-02<br>mono · 400</div><div class="spec-sample" style="font-family: var(--pg-font-mono); font-size: 0.875rem;">// Ubuntu Mono — for tokens, code, terminals, ledger columns.</div></div>
+      </div>
+    </section>
+
+    <!-- ============ Chapter: SPACING & SHAPE ============ -->
+    <section class="chapter" id="spacing">
+      <div class="chap-num">05 · SPACING &amp; SHAPE</div>
+      <h2 class="chap-title">A 4 px grid with Ubuntu's softer edges.</h2>
+      <p class="chap-lede">
+        Spacing follows Carbon's 4 px base unit, with steps at 2/4/8/12/16/24/32/40/48/64/80/96/160. Radii are Ubuntu-soft: 6 px on inputs and buttons, 8 px on cards and tiles, 12 px on dialogs and window chrome. No sharp 0 px corners unless the surface is a data table edge.
+      </p>
+
+      <div class="h-rule"><h3>Spacing scale</h3><small>4 px grid · --pg-space-01 … 13</small></div>
+      <div>
+        <div class="spacing-row"><span>01</span><span>2 px</span><div class="spacing-bar" style="width:2px"></div></div>
+        <div class="spacing-row"><span>02</span><span>4 px</span><div class="spacing-bar" style="width:4px"></div></div>
+        <div class="spacing-row"><span>03</span><span>8 px</span><div class="spacing-bar" style="width:8px"></div></div>
+        <div class="spacing-row"><span>04</span><span>12 px</span><div class="spacing-bar" style="width:12px"></div></div>
+        <div class="spacing-row"><span>05</span><span>16 px</span><div class="spacing-bar" style="width:16px"></div></div>
+        <div class="spacing-row"><span>06</span><span>24 px</span><div class="spacing-bar" style="width:24px"></div></div>
+        <div class="spacing-row"><span>07</span><span>32 px</span><div class="spacing-bar" style="width:32px"></div></div>
+        <div class="spacing-row"><span>08</span><span>40 px</span><div class="spacing-bar" style="width:40px"></div></div>
+        <div class="spacing-row"><span>09</span><span>48 px</span><div class="spacing-bar" style="width:48px"></div></div>
+        <div class="spacing-row"><span>10</span><span>64 px</span><div class="spacing-bar" style="width:64px"></div></div>
+        <div class="spacing-row"><span>11</span><span>80 px</span><div class="spacing-bar" style="width:80px"></div></div>
+        <div class="spacing-row"><span>12</span><span>96 px</span><div class="spacing-bar" style="width:96px"></div></div>
+        <div class="spacing-row"><span>13</span><span>160 px</span><div class="spacing-bar" style="width:160px; max-width: 100%"></div></div>
+      </div>
+
+      <div class="h-rule"><h3>Radii</h3><small>0 / 3 / 6 / 8 / 12 / 16 / pill</small></div>
+      <div class="radii-grid">
+        <div class="radius-cell"><div class="radius-shape" style="border-radius: 0;"></div><div class="radius-label"><b>0</b>--pg-radius-0 · table edges</div></div>
+        <div class="radius-cell"><div class="radius-shape" style="border-radius: 3px;"></div><div class="radius-label"><b>3 px</b>--pg-radius-xs · tags</div></div>
+        <div class="radius-cell"><div class="radius-shape" style="border-radius: 6px;"></div><div class="radius-label"><b>6 px</b>--pg-radius-sm · inputs, buttons</div></div>
+        <div class="radius-cell"><div class="radius-shape" style="border-radius: 8px;"></div><div class="radius-label"><b>8 px</b>--pg-radius-md · cards</div></div>
+        <div class="radius-cell"><div class="radius-shape" style="border-radius: 12px;"></div><div class="radius-label"><b>12 px</b>--pg-radius-lg · dialogs</div></div>
+        <div class="radius-cell"><div class="radius-shape" style="border-radius: 16px;"></div><div class="radius-label"><b>16 px</b>--pg-radius-xl · illustrations</div></div>
+        <div class="radius-cell"><div class="radius-shape" style="border-radius: 999px;"></div><div class="radius-label"><b>pill</b>--pg-radius-pill · chips, toggles</div></div>
+      </div>
+
+      <div class="h-rule"><h3>Elevation</h3><small>warm-tinted shadows; never pure black</small></div>
+      <div class="shadow-grid">
+        <div class="shadow-cell" style="box-shadow: var(--pg-shadow-01);"><b>--pg-shadow-01</b>resting cards</div>
+        <div class="shadow-cell" style="box-shadow: var(--pg-shadow-02);"><b>--pg-shadow-02</b>hover, popovers</div>
+        <div class="shadow-cell" style="box-shadow: var(--pg-shadow-03);"><b>--pg-shadow-03</b>menus, sheets</div>
+        <div class="shadow-cell" style="box-shadow: var(--pg-shadow-04);"><b>--pg-shadow-04</b>modal, dialog</div>
+      </div>
+    </section>
+
+    <!-- ============ Chapter: MOTION ============ -->
+    <section class="chapter" id="motion">
+      <div class="chap-num">06 · MOTION</div>
+      <h2 class="chap-title">Quiet and quick.</h2>
+      <p class="chap-lede">
+        Motion takes its cues from Carbon: short durations, productive easing. No bouncing, no overshoot. The slowest curve in the system is reserved for view transitions; everything that responds to a click sits in 70–150 ms.
+      </p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--pg-space-04);">
+        <div class="pg-tile" style="display: flex; flex-direction: column; gap: 10px;">
+          <div class="pg-overline">fast-01 · 70ms</div>
+          <div style="height: 32px; background: var(--pg-bg-hover); border-radius: 6px; position: relative; overflow: hidden;">
+            <div class="motion-bar" style="position: absolute; top: 0; left: 0; bottom: 0; width: 40%; background: var(--pg-orange-50); border-radius: 6px; animation: m1 1.6s var(--pg-ease-standard) infinite alternate;"></div>
+          </div>
+          <span class="pg-helper">Micro-state · hover-out</span>
+        </div>
+        <div class="pg-tile" style="display: flex; flex-direction: column; gap: 10px;">
+          <div class="pg-overline">moderate-01 · 150ms</div>
+          <div style="height: 32px; background: var(--pg-bg-hover); border-radius: 6px; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 0; left: 0; bottom: 0; width: 70%; background: var(--pg-aubergine-80); border-radius: 6px; animation: m2 2.4s var(--pg-ease-entrance) infinite alternate;"></div>
+          </div>
+          <span class="pg-helper">Component enter</span>
+        </div>
+        <div class="pg-tile" style="display: flex; flex-direction: column; gap: 10px;">
+          <div class="pg-overline">slow-02 · 700ms</div>
+          <div style="height: 32px; background: var(--pg-bg-hover); border-radius: 6px; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 0; left: 0; bottom: 0; width: 100%; background: linear-gradient(90deg, transparent, var(--pg-orange-30), transparent); animation: m3 2s linear infinite;"></div>
+          </div>
+          <span class="pg-helper">Skeleton, page transition</span>
+        </div>
+      </div>
+      <style>
+        @keyframes m1 { from { width: 12% } to { width: 88% } }
+        @keyframes m2 { from { width: 15% } to { width: 95% } }
+        @keyframes m3 { from { transform: translateX(-100%) } to { transform: translateX(100%) } }
+      </style>
+    </section>
+
+    <!-- ============ Chapter: ICONOGRAPHY ============ -->
+    <section class="chapter" id="icons">
+      <div class="chap-num">07 · ICONOGRAPHY</div>
+      <h2 class="chap-title">A 20 px grid, slightly humanist.</h2>
+      <p class="chap-lede">
+        Icons live on a 20 px grid with a 1.5 px stroke. They're drawn in the spirit of Carbon icons — geometric, even visual weight, square corners on functional glyphs — but with Yaru's pen: a touch of softness on the terminals, rounded line caps, and an occasional dot for personality.
+      </p>
+      <div class="icon-grid" id="icon-grid"></div>
+    </section>
+
+    <!-- ============ Chapter: COMPONENTS ============ -->
+    <section class="chapter" id="components">
+      <div class="chap-num">08 · COMPONENT LIBRARY</div>
+      <h2 class="chap-title">Carbon's vocabulary, Pangolin's voice.</h2>
+      <p class="chap-lede">
+        Twenty-two primitives, ready to compose. Heights are compact by default (32 px controls) to honour Carbon's density. Radii are Ubuntu-soft. Focus rings are always Ubuntu orange; the system reserves that color so no one mistakes a focus state for an accent.
+      </p>
+
+      <!-- BUTTONS -->
+      <div class="h-rule"><h3>Buttons</h3><small>Primary aubergine · Tertiary orange · Compact 32 px</small></div>
+      <div class="comp-frame">
+        <div class="comp-grid comp-grid-2">
+          <div>
+            <div class="pg-overline" style="margin-bottom: 12px;">Variants — sm</div>
+            <div class="comp-row">
+              <button class="pg-btn pg-btn--sm">Primary</button>
+              <button class="pg-btn pg-btn--secondary pg-btn--sm">Secondary</button>
+              <button class="pg-btn pg-btn--tertiary pg-btn--sm">Tertiary</button>
+              <button class="pg-btn pg-btn--ghost pg-btn--sm">Ghost</button>
+              <button class="pg-btn pg-btn--danger pg-btn--sm">Danger</button>
+            </div>
+          </div>
+          <div>
+            <div class="pg-overline" style="margin-bottom: 12px;">Variants — md (default)</div>
+            <div class="comp-row">
+              <button class="pg-btn">Primary</button>
+              <button class="pg-btn pg-btn--secondary">Secondary</button>
+              <button class="pg-btn pg-btn--tertiary">Tertiary</button>
+              <button class="pg-btn pg-btn--ghost">Ghost</button>
+              <button class="pg-btn pg-btn--danger">Delete</button>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top: 24px;">
+          <div class="pg-overline" style="margin-bottom: 12px;">With icons · Loading · Disabled</div>
+          <div class="comp-row">
+            <button class="pg-btn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8h11M9 3.5l4.5 4.5L9 12.5"/></svg>Continue</button>
+            <button class="pg-btn pg-btn--secondary"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M8 2v8M3.5 6.5L8 2l4.5 4.5M2.5 13.5h11"/></svg>Upload</button>
+            <button class="pg-btn pg-btn--tertiary"><span class="pg-spinner" style="width:14px;height:14px;border-width:1.5px;border-color: transparent var(--pg-orange-60) var(--pg-orange-60) var(--pg-orange-60);"></span>Working</button>
+            <button class="pg-btn" disabled>Disabled</button>
+            <button class="pg-btn pg-btn--accent">Accent CTA</button>
+          </div>
+        </div>
+        <div style="margin-top: 24px;">
+          <div class="pg-overline" style="margin-bottom: 12px;">Button group</div>
+          <div class="pg-btn-group">
+            <button class="pg-btn pg-btn--secondary"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h10M3 8h10M3 12h6"/></svg></button>
+            <button class="pg-btn pg-btn--secondary"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h10M6 8h7M3 12h10"/></svg></button>
+            <button class="pg-btn pg-btn--secondary"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 4h8M3 8h10M5 12h8"/></svg></button>
+            <button class="pg-btn pg-btn--secondary"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h10M7 8h6M3 12h10"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- INPUTS -->
+      <div class="h-rule"><h3>Forms &amp; inputs</h3><small>Compact 32 px · Carbon underlining preserved</small></div>
+      <div class="comp-frame">
+        <div class="comp-grid comp-grid-3">
+          <div class="pg-field">
+            <label class="pg-field-label" for="i1">Workspace name</label>
+            <input id="i1" class="pg-input" type="text" placeholder="e.g. observability-prod" value="pangolin-prod">
+            <span class="pg-field-helper">Lowercase, hyphenated.</span>
+          </div>
+          <div class="pg-field">
+            <label class="pg-field-label" for="i2">Region</label>
+            <select id="i2" class="pg-select">
+              <option>eu-west-1 (Dublin)</option>
+              <option>us-east-1 (Virginia)</option>
+              <option>ap-southeast-2 (Sydney)</option>
+            </select>
+            <span class="pg-field-helper">Closest to your operators.</span>
+          </div>
+          <div class="pg-field">
+            <label class="pg-field-label" for="i3">API token</label>
+            <input id="i3" class="pg-input is-error" type="text" value="pgn_••••" >
+            <span class="pg-field-helper pg-field-error">Token revoked. Generate a new one.</span>
+          </div>
+          <div class="pg-field" style="grid-column: span 2;">
+            <label class="pg-field-label" for="i4">Description</label>
+            <textarea id="i4" class="pg-textarea" placeholder="What does this workspace do?">A staging mirror of the production observability fleet.</textarea>
+          </div>
+          <div class="pg-field">
+            <label class="pg-field-label" for="i5">Concurrency</label>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <input id="i5" class="pg-slider" type="range" min="1" max="100" value="32" style="flex: 1;">
+              <span class="pg-tag pg-tag--code">32</span>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top: 32px; display: flex; gap: var(--pg-space-06); flex-wrap: wrap; align-items: center;">
+          <label class="pg-check"><input type="checkbox" checked><span class="pg-check-box"></span>Email me on critical alerts</label>
+          <label class="pg-check"><input type="checkbox"><span class="pg-check-box"></span>Auto-rotate keys monthly</label>
+          <label class="pg-radio"><input type="radio" name="r" checked><span class="pg-radio-dot"></span>Public</label>
+          <label class="pg-radio"><input type="radio" name="r"><span class="pg-radio-dot"></span>Private</label>
+          <label class="pg-toggle"><input type="checkbox" checked><span class="pg-toggle-track"></span>Telemetry</label>
+          <label class="pg-toggle"><input type="checkbox"><span class="pg-toggle-track"></span>Beta features</label>
+        </div>
+      </div>
+
+      <!-- TAGS, AVATARS -->
+      <div class="h-rule"><h3>Tags, kbd, avatars</h3><small>System furniture</small></div>
+      <div class="comp-frame">
+        <div class="comp-row" style="margin-bottom: 18px;">
+          <span class="pg-tag">Default</span>
+          <span class="pg-tag pg-tag--accent">Orange</span>
+          <span class="pg-tag pg-tag--brand">Aubergine</span>
+          <span class="pg-tag pg-tag--code">v0.1.4</span>
+          <span class="pg-tag" style="background: var(--pg-support-success-bg); color: var(--pg-green-60);">● Healthy</span>
+          <span class="pg-tag" style="background: var(--pg-support-warning-bg); color: var(--pg-amber-60);">● Degraded</span>
+          <span class="pg-tag" style="background: var(--pg-support-error-bg); color: var(--pg-red-60);">● Down</span>
+        </div>
+        <div class="comp-row" style="margin-bottom: 18px;">
+          <span class="pg-kbd">⌘</span><span class="pg-kbd">K</span>
+          <span style="color: var(--pg-text-secondary); font-size: 12px;">opens command palette</span>
+          <span class="pg-kbd">⌃</span><span class="pg-kbd">⌥</span><span class="pg-kbd">T</span>
+          <span style="color: var(--pg-text-secondary); font-size: 12px;">launches terminal</span>
+        </div>
+        <div class="comp-row">
+          <div class="pg-avatar pg-avatar--sm">MA</div>
+          <div class="pg-avatar">JR</div>
+          <div class="pg-avatar" style="background: var(--pg-orange-50);">EK</div>
+          <div class="pg-avatar" style="background: var(--pg-accent-teal);">SP</div>
+          <div class="pg-avatar pg-avatar--lg" style="background: var(--pg-accent-magenta);">CR</div>
+        </div>
+      </div>
+
+      <!-- TILES -->
+      <div class="h-rule"><h3>Tiles &amp; cards</h3><small>Selectable, clickable, brand</small></div>
+      <div class="comp-grid comp-grid-3">
+        <div class="pg-tile">
+          <div class="pg-overline" style="margin-bottom: 12px;">Metric</div>
+          <div style="font-size: 2.25rem; font-weight: 300; letter-spacing: -0.02em;">1,284</div>
+          <div style="color: var(--pg-text-secondary); font-size: 13px; margin-top: 4px;">requests / second · last hour</div>
+          <div style="display: flex; align-items: center; gap: 6px; margin-top: 16px; color: var(--pg-green-50); font-size: 12px; font-weight: 500;">
+            <svg viewBox="0 0 12 12" width="12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7l3-3 3 3"/></svg>
+            +12.4% vs. yesterday
+          </div>
+        </div>
+        <div class="pg-tile pg-tile--selected">
+          <div class="pg-overline" style="margin-bottom: 12px; color: var(--pg-orange-60);">Selected · plan</div>
+          <h4 style="font-size: 1.25rem; font-weight: 600;">Pangolin Pro</h4>
+          <p style="color: var(--pg-text-secondary); font-size: 13px; margin-top: 6px; line-height: 1.5;">Unlimited workspaces, advanced observability, audit logs.</p>
+          <div style="font-size: 1.75rem; font-weight: 300; margin-top: 16px;">$49<span style="font-size: 13px; color: var(--pg-text-secondary);">/seat / mo</span></div>
+        </div>
+        <div class="pg-tile pg-tile--brand">
+          <div class="pg-overline" style="margin-bottom: 12px; color: var(--pg-orange-30); border-color: var(--pg-orange-30);">Announcement</div>
+          <h4 style="font-size: 1.25rem; font-weight: 500; color: #fff;">Pangolin 0.2 — incoming</h4>
+          <p style="color: var(--pg-warm-40); font-size: 13px; margin-top: 6px; line-height: 1.5;">Data viz primitives, command palette, and a friendlier table head.</p>
+          <a style="display: inline-block; margin-top: 16px; color: var(--pg-orange-30); font-size: 13px; font-weight: 500;">Read the changelog →</a>
+        </div>
+      </div>
+
+      <!-- NOTIFICATIONS -->
+      <div class="h-rule"><h3>Notifications</h3><small>Inline · toast · actionable</small></div>
+      <div class="comp-grid comp-grid-2">
+        <div class="pg-notif pg-notif--inline">
+          <svg class="pg-notif-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="9" r="7"/><path d="M9 6v4M9 12.5v.5"/></svg>
+          <div class="pg-notif-body">
+            <div class="pg-notif-title">New region available</div>
+            <div class="pg-notif-msg">ap-northeast-1 (Tokyo) is live. Workspaces created today will provision there by default.</div>
+          </div>
+        </div>
+        <div class="pg-notif pg-notif--inline pg-notif--success">
+          <svg class="pg-notif-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="9" r="7"/><path d="M6 9.5l2 2 4-4.5"/></svg>
+          <div class="pg-notif-body">
+            <div class="pg-notif-title">Deploy succeeded</div>
+            <div class="pg-notif-msg">pangolin-prod · 17 services updated in 42 s. All health checks passing.</div>
+          </div>
+        </div>
+        <div class="pg-notif pg-notif--inline pg-notif--warning">
+          <svg class="pg-notif-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 1.5l8 14.5H1z"/><path d="M9 7v4M9 13.5v.5"/></svg>
+          <div class="pg-notif-body">
+            <div class="pg-notif-title">High memory pressure</div>
+            <div class="pg-notif-msg">runner-7 is at 88%. Auto-scale will trigger in 2 minutes if pressure persists.</div>
+          </div>
+        </div>
+        <div class="pg-notif pg-notif--inline pg-notif--error">
+          <svg class="pg-notif-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="9" r="7"/><path d="M6 6l6 6M12 6l-6 6"/></svg>
+          <div class="pg-notif-body">
+            <div class="pg-notif-title">Token revoked — action required</div>
+            <div class="pg-notif-msg">pgn_••••2c failed authentication. Generate a new token to restore CI access.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROGRESS -->
+      <div class="h-rule"><h3>Progress &amp; loading</h3><small>Bar · spinner · skeleton</small></div>
+      <div class="comp-frame">
+        <div style="display: grid; gap: 16px;">
+          <div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; color: var(--pg-text-secondary);">
+              <span>Indexing 18 of 24 services…</span><span>75%</span>
+            </div>
+            <div class="pg-progress"><div class="pg-progress-bar" style="width: 75%;"></div></div>
+          </div>
+          <div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; color: var(--pg-text-secondary);">
+              <span>Building image · pangolin-runner</span><span>33%</span>
+            </div>
+            <div class="pg-progress pg-progress--brand"><div class="pg-progress-bar" style="width: 33%;"></div></div>
+          </div>
+          <div style="display: flex; gap: 24px; align-items: center; padding-top: 8px; border-top: 1px dashed var(--pg-border-subtle-01); padding-top: 16px;">
+            <span class="pg-spinner"></span>
+            <span style="color: var(--pg-text-secondary); font-size: 13px;">Auth handshake…</span>
+            <span class="pg-spinner pg-spinner--lg" style="border-top-color: var(--pg-aubergine-80);"></span>
+            <span style="color: var(--pg-text-secondary); font-size: 13px;">Loading workspace…</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="h-rule"><h3>Data table</h3><small>Carbon density · Pangolin warmth</small></div>
+      <div>
+        <div class="pg-table-toolbar">
+          <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+            <strong style="font-size: 13px;">Active runners</strong>
+            <span class="pg-tag pg-tag--code">17</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <input class="pg-input pg-input--sm" placeholder="Filter…" style="height: 28px; width: 200px; font-size: 13px;">
+            <button class="pg-btn pg-btn--ghost pg-btn--sm"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg></button>
+            <button class="pg-btn pg-btn--ghost pg-btn--sm"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 5h10M5 8h6M7 11h2"/></svg></button>
+            <button class="pg-btn pg-btn--tertiary pg-btn--sm">+ New runner</button>
+          </div>
+        </div>
+        <table class="pg-table">
+          <thead>
+            <tr>
+              <th style="width: 36px;"><label class="pg-check"><input type="checkbox"><span class="pg-check-box"></span></label></th>
+              <th>Name</th>
+              <th>Region</th>
+              <th>Status</th>
+              <th>CPU / Mem</th>
+              <th>Last heartbeat</th>
+              <th style="width: 40px;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="is-selected">
+              <td><label class="pg-check"><input type="checkbox" checked><span class="pg-check-box"></span></label></td>
+              <td><strong>runner-01</strong><div style="font-family: var(--pg-font-mono); font-size: 11px; color: var(--pg-text-secondary);">i-0a4f…2c1</div></td>
+              <td>eu-west-1a</td>
+              <td><span class="pg-tag" style="background: var(--pg-support-success-bg); color: var(--pg-green-60);">● Healthy</span></td>
+              <td><span style="font-family: var(--pg-font-mono); font-size: 12px;">34% / 2.1GB</span></td>
+              <td style="color: var(--pg-text-secondary);">12 s ago</td>
+              <td style="color: var(--pg-text-placeholder);">⋯</td>
+            </tr>
+            <tr>
+              <td><label class="pg-check"><input type="checkbox"><span class="pg-check-box"></span></label></td>
+              <td><strong>runner-02</strong><div style="font-family: var(--pg-font-mono); font-size: 11px; color: var(--pg-text-secondary);">i-1b3c…9d2</div></td>
+              <td>eu-west-1b</td>
+              <td><span class="pg-tag" style="background: var(--pg-support-success-bg); color: var(--pg-green-60);">● Healthy</span></td>
+              <td><span style="font-family: var(--pg-font-mono); font-size: 12px;">22% / 1.8GB</span></td>
+              <td style="color: var(--pg-text-secondary);">8 s ago</td>
+              <td style="color: var(--pg-text-placeholder);">⋯</td>
+            </tr>
+            <tr>
+              <td><label class="pg-check"><input type="checkbox"><span class="pg-check-box"></span></label></td>
+              <td><strong>runner-07</strong><div style="font-family: var(--pg-font-mono); font-size: 11px; color: var(--pg-text-secondary);">i-3e5a…0f4</div></td>
+              <td>eu-west-1c</td>
+              <td><span class="pg-tag" style="background: var(--pg-support-warning-bg); color: var(--pg-amber-60);">● Degraded</span></td>
+              <td><span style="font-family: var(--pg-font-mono); font-size: 12px;">88% / 7.4GB</span></td>
+              <td style="color: var(--pg-text-secondary);">3 s ago</td>
+              <td style="color: var(--pg-text-placeholder);">⋯</td>
+            </tr>
+            <tr>
+              <td><label class="pg-check"><input type="checkbox"><span class="pg-check-box"></span></label></td>
+              <td><strong>runner-12</strong><div style="font-family: var(--pg-font-mono); font-size: 11px; color: var(--pg-text-secondary);">i-7d2b…5a6</div></td>
+              <td>us-east-1a</td>
+              <td><span class="pg-tag" style="background: var(--pg-support-error-bg); color: var(--pg-red-60);">● Unreachable</span></td>
+              <td><span style="font-family: var(--pg-font-mono); font-size: 12px; color: var(--pg-text-placeholder);">— / —</span></td>
+              <td style="color: var(--pg-text-secondary);">4 m ago</td>
+              <td style="color: var(--pg-text-placeholder);">⋯</td>
+            </tr>
+            <tr>
+              <td><label class="pg-check"><input type="checkbox"><span class="pg-check-box"></span></label></td>
+              <td><strong>runner-13</strong><div style="font-family: var(--pg-font-mono); font-size: 11px; color: var(--pg-text-secondary);">i-9e1f…b30</div></td>
+              <td>us-east-1b</td>
+              <td><span class="pg-tag" style="background: var(--pg-support-success-bg); color: var(--pg-green-60);">● Healthy</span></td>
+              <td><span style="font-family: var(--pg-font-mono); font-size: 12px;">41% / 3.2GB</span></td>
+              <td style="color: var(--pg-text-secondary);">11 s ago</td>
+              <td style="color: var(--pg-text-placeholder);">⋯</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- NAV -->
+      <div class="h-rule"><h3>Navigation</h3><small>App bar · tabs · breadcrumb</small></div>
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="pg-appbar" style="border-radius: var(--pg-radius-md);">
+          <div class="pg-appbar-brand">
+            <svg width="22" height="22" viewBox="0 0 32 32"><g transform="translate(16 16)"><path d="M -8 8 A 11 11 0 0 1 8 -8" stroke="#E95420" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M -5 6 A 8 8 0 0 1 7 -5" stroke="#FF7848" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M -2 4 A 5 5 0 0 1 5 -3" stroke="#FFAE85" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="5" cy="0" r="1.6" fill="#FAF7F4"/></g></svg>
+            <span>pangolin</span>
+          </div>
+          <nav class="pg-appbar-nav">
+            <a class="pg-appbar-link" aria-current="page">Workspaces</a>
+            <a class="pg-appbar-link">Runners</a>
+            <a class="pg-appbar-link">Logs</a>
+            <a class="pg-appbar-link">Billing</a>
+          </nav>
+          <div class="pg-appbar-right">
+            <span class="pg-kbd" style="background: rgba(255,255,255,0.1); border-color: transparent; color: rgba(255,255,255,0.7);">⌘K</span>
+            <div class="pg-avatar pg-avatar--sm" style="background: var(--pg-orange-50);">EK</div>
+          </div>
+        </div>
+        <div>
+          <nav class="pg-breadcrumb" style="margin-bottom: 12px;">
+            <a>Workspaces</a>
+            <span class="pg-breadcrumb-sep">/</span>
+            <a>pangolin-prod</a>
+            <span class="pg-breadcrumb-sep">/</span>
+            <span class="pg-breadcrumb-current">Runners</span>
+          </nav>
+          <div class="pg-tabs">
+            <button class="pg-tab" aria-selected="true">Overview <span class="pg-tag pg-tag--code">17</span></button>
+            <button class="pg-tab">Logs</button>
+            <button class="pg-tab">Metrics</button>
+            <button class="pg-tab">Audit</button>
+            <button class="pg-tab">Settings</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL -->
+      <div class="h-rule"><h3>Modal</h3><small>12 px radius · warm overlay</small></div>
+      <div class="comp-frame" style="position: relative; overflow: hidden; min-height: 320px; padding: 0;">
+        <div style="position: absolute; inset: 0; background: var(--pg-overlay); display: flex; align-items: center; justify-content: center; padding: 24px;">
+          <div class="pg-modal">
+            <div class="pg-modal-head">
+              <div>
+                <div class="pg-overline" style="margin-bottom: 8px;">Confirm</div>
+                <div class="pg-modal-title">Delete runner-12?</div>
+              </div>
+              <button class="pg-btn pg-btn--ghost pg-btn--sm pg-btn--icon-only" aria-label="Close">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg>
+              </button>
+            </div>
+            <div class="pg-modal-body">
+              The runner has been unreachable for 4 minutes. Deleting it removes the instance and detaches any pending jobs. This cannot be undone.
+            </div>
+            <div class="pg-modal-foot">
+              <button class="pg-btn pg-btn--ghost">Cancel</button>
+              <button class="pg-btn pg-btn--danger">Delete runner</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Chapter: TOKEN REFERENCE ============ -->
+    <section class="chapter" id="tokens">
+      <div class="chap-num">10 · SEMANTIC TOKENS</div>
+      <h2 class="chap-title">One source of truth, two themes.</h2>
+      <p class="chap-lede">
+        Every component reads from <span class="pg-code">--pg-*</span> custom properties. Themes are swapped at the <span class="pg-code">data-theme</span> attribute on the document root: <b>paper</b> for light, <b>terminal</b> for dark. Below is the canonical map for color tokens — try the toggle in the top bar to see them shift.
+      </p>
+      <div class="pg-panel pg-panel-pad" style="overflow-x: auto;">
+        <table class="tokens-table">
+          <thead><tr><th>Token</th><th>Paper</th><th>Terminal</th><th>Role</th></tr></thead>
+          <tbody>
+            <tr><td class="tok">--pg-bg</td><td class="val"><span class="chip" style="background:#FAF7F4"></span>#FAF7F4</td><td class="val"><span class="chip" style="background:#1A0011"></span>#1A0011</td><td>Page background</td></tr>
+            <tr><td class="tok">--pg-layer-01</td><td class="val"><span class="chip" style="background:#FFFFFF"></span>#FFFFFF</td><td class="val"><span class="chip" style="background:#2C001E"></span>#2C001E</td><td>Cards, panels, sheets</td></tr>
+            <tr><td class="tok">--pg-layer-02</td><td class="val"><span class="chip" style="background:#FAF7F4"></span>#FAF7F4</td><td class="val"><span class="chip" style="background:#44032E"></span>#44032E</td><td>Nested cards, toolbars</td></tr>
+            <tr><td class="tok">--pg-text-primary</td><td class="val"><span class="chip" style="background:#1B1612"></span>#1B1612</td><td class="val"><span class="chip" style="background:#F4EFED"></span>#F4EFED</td><td>Body, headings</td></tr>
+            <tr><td class="tok">--pg-text-secondary</td><td class="val"><span class="chip" style="background:#6B6259"></span>#6B6259</td><td class="val"><span class="chip" style="background:#B9ACAE"></span>#B9ACAE</td><td>Helper text, captions</td></tr>
+            <tr><td class="tok">--pg-button-primary</td><td class="val"><span class="chip" style="background:#2C001E"></span>#2C001E</td><td class="val"><span class="chip" style="background:#E95420"></span>#E95420</td><td>Primary CTA</td></tr>
+            <tr><td class="tok">--pg-link-primary</td><td class="val"><span class="chip" style="background:#77216F"></span>#77216F</td><td class="val"><span class="chip" style="background:#FFAE85"></span>#FFAE85</td><td>Inline links</td></tr>
+            <tr><td class="tok">--pg-focus</td><td class="val"><span class="chip" style="background:#E95420"></span>#E95420</td><td class="val"><span class="chip" style="background:#FF7848"></span>#FF7848</td><td>Focus ring · selection</td></tr>
+            <tr><td class="tok">--pg-border-subtle-01</td><td class="val"><span class="chip" style="background:#E8E2DA"></span>#E8E2DA</td><td class="val"><span class="chip" style="background:#44032E"></span>#44032E</td><td>Dividers, card edges</td></tr>
+            <tr><td class="tok">--pg-support-error</td><td class="val"><span class="chip" style="background:#C8240F"></span>#C8240F</td><td class="val"><span class="chip" style="background:#FF6F5C"></span>#FF6F5C</td><td>Errors, danger states</td></tr>
+            <tr><td class="tok">--pg-support-success</td><td class="val"><span class="chip" style="background:#1D7A4B"></span>#1D7A4B</td><td class="val"><span class="chip" style="background:#4FBE7E"></span>#4FBE7E</td><td>Success, healthy</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ Chapter: DEMOS ============ -->
+    <section class="chapter" id="demos">
+      <div class="chap-num">11 · DEMOS</div>
+      <h2 class="chap-title">The system, put to work.</h2>
+      <p class="chap-lede">
+        Pangolin is built for three surfaces. Each demo composes the same tokens and components into a different shape: a data-dense SaaS dashboard, a Yaru-flavored desktop app, and a mobile product flow.
+      </p>
+      <div class="demo-cards">
+        <a class="demo-card" href="demos/dashboard.html">
+          <div class="demo-card-thumb" id="thumb-dashboard"></div>
+          <div class="demo-card-meta">
+            <span class="demo-card-tag">/demos/dashboard</span>
+            <h4>Observability dashboard</h4>
+            <p>Runners, regions, alerts, charts. Carbon-density tables in Ubuntu colors.</p>
+          </div>
+        </a>
+        <a class="demo-card" href="demos/desktop.html">
+          <div class="demo-card-thumb" id="thumb-desktop"></div>
+          <div class="demo-card-meta">
+            <span class="demo-card-tag">/demos/desktop</span>
+            <h4>Linux desktop app</h4>
+            <p>Yaru window chrome, hamburger header, sidebar nav, settings pane.</p>
+          </div>
+        </a>
+        <a class="demo-card" href="demos/mobile.html">
+          <div class="demo-card-thumb" id="thumb-mobile"></div>
+          <div class="demo-card-meta">
+            <span class="demo-card-tag">/demos/mobile</span>
+            <h4>Mobile flows</h4>
+            <p>Pangolin on a phone — onboarding, dashboard, alert center.</p>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <div>
+        <strong>Pangolin · 0.1.0</strong>
+        <span class="foot-mono"> · ubuntu-inspired · carbon-style · 2026</span>
+      </div>
+      <div class="foot-mono">
+        designed for operators, built on css custom properties
+      </div>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  // ----- Theme toggle -----
+  const themeBtn = document.getElementById("theme-btn");
+  const themeLabel = document.getElementById("theme-label");
+  const saved = localStorage.getItem("pg-theme") || "paper";
+  document.documentElement.setAttribute("data-theme", saved);
+  themeLabel.textContent = saved === "paper" ? "Paper" : "Terminal";
+  themeBtn.addEventListener("click", () => {
+    const next = document.documentElement.getAttribute("data-theme") === "paper" ? "terminal" : "paper";
+    document.documentElement.setAttribute("data-theme", next);
+    themeLabel.textContent = next === "paper" ? "Paper" : "Terminal";
+    localStorage.setItem("pg-theme", next);
+  });
+
+  // ----- Hero variant tabs -----
+  document.querySelectorAll(".variants [data-variant]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const which = btn.dataset.variant;
+      document.querySelectorAll(".variants [data-variant]").forEach(b => b.setAttribute("aria-selected", b === btn ? "true" : "false"));
+      document.querySelectorAll(".variants [data-variant]").forEach(b => b.classList.toggle("is-active", b === btn));
+      document.querySelectorAll("[data-variant-panel]").forEach(p => p.hidden = p.dataset.variantPanel !== which);
+    });
+  });
+  document.querySelector('.variants [data-variant="A"]').classList.add("is-active");
+
+  // ----- TOC active state on scroll -----
+  const links = [...document.querySelectorAll(".toc-link")];
+  const sections = links.map(l => document.querySelector(l.getAttribute("href"))).filter(Boolean);
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const id = "#" + e.target.id;
+        links.forEach(l => l.classList.toggle("is-active", l.getAttribute("href") === id));
+      }
+    });
+  }, { rootMargin: "-30% 0px -60% 0px" });
+  sections.forEach(s => io.observe(s));
+
+  // ----- Icon set (inline 20x20 grid) -----
+  const ICONS = {
+    home:    '<path d="M3 9l7-6 7 6v8a1 1 0 0 1-1 1h-3v-5H7v5H4a1 1 0 0 1-1-1z"/>',
+    search:  '<circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4 4"/>',
+    settings:'<circle cx="10" cy="10" r="2.5"/><path d="M10 1.5v3M10 15.5v3M1.5 10h3M15.5 10h3M3.8 3.8l2.1 2.1M14.1 14.1l2.1 2.1M3.8 16.2l2.1-2.1M14.1 5.9l2.1-2.1"/>',
+    user:    '<circle cx="10" cy="7" r="3.5"/><path d="M3.5 17a6.5 6.5 0 0 1 13 0"/>',
+    bell:    '<path d="M5 9a5 5 0 0 1 10 0v4l1.5 2H3.5L5 13z"/><path d="M8 17.5a2 2 0 0 0 4 0"/>',
+    folder:  '<path d="M2.5 5.5h5l2 2h8v8a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1z"/>',
+    file:    '<path d="M5 2h7l4 4v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M12 2v4h4"/>',
+    code:    '<path d="M6 6l-4 4 4 4M14 6l4 4-4 4M11 4l-2 12"/>',
+    terminal:'<path d="M3 4h14v12H3z"/><path d="M6 8l3 2-3 2M11 12h4"/>',
+    cloud:   '<path d="M5 14a4 4 0 0 1 1-7.9A5 5 0 0 1 15 8a3.5 3.5 0 0 1 0 7H5z"/>',
+    download:'<path d="M10 3v10M5.5 9.5L10 14l4.5-4.5M3 17h14"/>',
+    upload:  '<path d="M10 17V7M5.5 10.5L10 6l4.5 4.5M3 3h14"/>',
+    plus:    '<path d="M10 4v12M4 10h12"/>',
+    minus:   '<path d="M4 10h12"/>',
+    close:   '<path d="M4 4l12 12M16 4l-12 12"/>',
+    check:   '<path d="M4 10.5l4 4 8-9"/>',
+    chevron: '<path d="M7 5l5 5-5 5"/>',
+    chart:   '<path d="M3 17V3M3 17h14"/><path d="M6 13l3-4 3 2 4-6"/>',
+    edit:    '<path d="M3 17h4l9-9-4-4-9 9z"/><path d="M11 5l4 4"/>',
+    trash:   '<path d="M4 6h12M7 6V4h6v2M6 6l1 11h6l1-11"/>',
+    lock:    '<rect x="4" y="9" width="12" height="9" rx="1"/><path d="M7 9V6a3 3 0 0 1 6 0v3"/>',
+    star:    '<path d="M10 2.5l2.4 5 5.6.7-4 4 1 5.5-5-2.8-5 2.8 1-5.5-4-4 5.6-.7z"/>',
+    heart:   '<path d="M10 17s-7-4.5-7-9.5a4 4 0 0 1 7-2.5 4 4 0 0 1 7 2.5c0 5-7 9.5-7 9.5z"/>',
+    pin:     '<path d="M10 2L7 7l-4 2 6 1 1 8 1-8 6-1-4-2z"/>',
+    filter:  '<path d="M3 4h14l-5 7v5l-4 1v-6z"/>',
+    grid:    '<rect x="3" y="3" width="6" height="6"/><rect x="11" y="3" width="6" height="6"/><rect x="3" y="11" width="6" height="6"/><rect x="11" y="11" width="6" height="6"/>',
+    list:    '<path d="M3 5h14M3 10h14M3 15h14"/>',
+    link:    '<path d="M8 12l4-4M7 14a3.5 3.5 0 0 1-2.5-6l2-2M13 6a3.5 3.5 0 0 1 2.5 6l-2 2"/>',
+    copy:    '<rect x="3" y="3" width="10" height="10"/><path d="M7 17h10V7"/>',
+    refresh: '<path d="M3 10a7 7 0 0 1 12-5l2 2M17 10a7 7 0 0 1-12 5l-2-2"/><path d="M14 4v3h3M6 16v-3H3"/>',
+    eye:     '<path d="M2 10s3-5 8-5 8 5 8 5-3 5-8 5-8-5-8-5z"/><circle cx="10" cy="10" r="2.5"/>',
+    play:    '<path d="M5 4l11 6-11 6z"/>',
+    pause:   '<path d="M6 4h3v12H6zM11 4h3v12h-3z"/>',
+    stop:    '<rect x="4" y="4" width="12" height="12" rx="1"/>',
+    pkg:     '<path d="M3 6l7-3 7 3v8l-7 3-7-3z"/><path d="M3 6l7 3 7-3M10 9v8"/>',
+    db:      '<ellipse cx="10" cy="5" rx="6" ry="2"/><path d="M4 5v10c0 1.1 2.7 2 6 2s6-.9 6-2V5M4 10c0 1.1 2.7 2 6 2s6-.9 6-2"/>',
+    server: '<rect x="3" y="3" width="14" height="6"/><rect x="3" y="11" width="14" height="6"/><circle cx="6" cy="6" r=".7" fill="currentColor"/><circle cx="6" cy="14" r=".7" fill="currentColor"/>',
+    flag:   '<path d="M5 17V3M5 4h10l-2 3 2 3H5"/>',
+    gear:   '<circle cx="10" cy="10" r="2.5"/><path d="M16.5 11.5l-1.5-.6a5 5 0 0 0 0-1.8l1.5-.6-1-1.7-1.6.4a5 5 0 0 0-1.6-.9L11.7 4h-2l-.6 1.3a5 5 0 0 0-1.6.9l-1.6-.4-1 1.7L6.4 8a5 5 0 0 0 0 1.8l-1.5.6 1 1.7 1.6-.4a5 5 0 0 0 1.6.9l.6 1.3h2l.6-1.3a5 5 0 0 0 1.6-.9l1.6.4z"/>',
+    moon:   '<path d="M15.5 13.5A6 6 0 0 1 6.5 4.5 6.5 6.5 0 1 0 15.5 13.5z"/>',
+    sun:    '<circle cx="10" cy="10" r="3.5"/><path d="M10 1.5v2M10 16.5v2M1.5 10h2M16.5 10h2M4 4l1.4 1.4M14.6 14.6l1.4 1.4M4 16l1.4-1.4M14.6 5.4l1.4-1.4"/>',
+    info:   '<circle cx="10" cy="10" r="8"/><path d="M10 7v.5M10 9.5V14"/>',
+    alert:  '<path d="M10 2l9 16H1z"/><path d="M10 8v4M10 14.5v.5"/>',
+  };
+  const grid = document.getElementById("icon-grid");
+  Object.entries(ICONS).forEach(([name, body]) => {
+    const cell = document.createElement("div");
+    cell.className = "icon-cell";
+    cell.innerHTML = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${body}</svg><span>${name}</span>`;
+    grid.appendChild(cell);
+  });
+
+  // ----- Demo card thumbnails (procedural SVG) -----
+  function thumb(svg) {
+    return `<svg viewBox="0 0 320 200" preserveAspectRatio="none" style="width:100%;height:100%;display:block;">${svg}</svg>`;
+  }
+  document.getElementById("thumb-dashboard").innerHTML = thumb(`
+    <rect width="320" height="200" fill="#1A0011"/>
+    <rect x="0" y="0" width="320" height="28" fill="#2C001E"/>
+    <circle cx="14" cy="14" r="4" fill="#E95420"/>
+    <rect x="24" y="11" width="44" height="6" rx="2" fill="#FFAE85"/>
+    <rect x="14" y="44" width="92" height="142" rx="6" fill="#2C001E"/>
+    <rect x="22" y="56" width="60" height="6" rx="2" fill="#8E5279"/>
+    <rect x="22" y="74" width="76" height="4" rx="2" fill="#44032E"/>
+    <rect x="22" y="86" width="50" height="4" rx="2" fill="#44032E"/>
+    <rect x="22" y="98" width="68" height="4" rx="2" fill="#44032E"/>
+    <rect x="22" y="110" width="40" height="4" rx="2" fill="#44032E"/>
+    <rect x="120" y="44" width="186" height="68" rx="6" fill="#2C001E"/>
+    <polyline points="128,98 145,82 162,90 180,70 198,76 215,60 232,68 250,58 268,72 290,52" stroke="#E95420" stroke-width="2.5" fill="none"/>
+    <polyline points="128,98 145,82 162,90 180,70 198,76 215,60 232,68 250,58 268,72 290,52 290,108 128,108" fill="#E95420" opacity="0.18"/>
+    <rect x="120" y="120" width="88" height="66" rx="6" fill="#2C001E"/>
+    <rect x="128" y="130" width="40" height="6" rx="2" fill="#FFAE85"/>
+    <text x="128" y="160" font-family="Ubuntu, sans-serif" font-size="22" font-weight="300" fill="#fff">1,284</text>
+    <rect x="216" y="120" width="90" height="66" rx="6" fill="#2C001E"/>
+    <circle cx="261" cy="153" r="20" fill="none" stroke="#44032E" stroke-width="4"/>
+    <path d="M 261 133 A 20 20 0 0 1 281 153" fill="none" stroke="#E95420" stroke-width="4"/>
+  `);
+  document.getElementById("thumb-desktop").innerHTML = thumb(`
+    <rect width="320" height="200" fill="#3a2935"/>
+    <rect x="20" y="20" width="280" height="160" rx="10" fill="#FAF7F4"/>
+    <rect x="20" y="20" width="280" height="28" rx="10" fill="#E8E2DA"/>
+    <rect x="20" y="38" width="280" height="10" fill="#E8E2DA"/>
+    <circle cx="34" cy="34" r="4" fill="#E95420"/>
+    <circle cx="48" cy="34" r="4" fill="#E0B419"/>
+    <circle cx="62" cy="34" r="4" fill="#5E8C61"/>
+    <rect x="120" y="28" width="80" height="12" rx="6" fill="#FAF7F4"/>
+    <rect x="32" y="58" width="80" height="112" rx="6" fill="#F2EEE9"/>
+    <rect x="40" y="68" width="64" height="20" rx="4" fill="#E95420" opacity="0.16"/>
+    <rect x="40" y="92" width="50" height="6" rx="2" fill="#6B6259"/>
+    <rect x="40" y="104" width="64" height="6" rx="2" fill="#BFB5A8"/>
+    <rect x="40" y="116" width="56" height="6" rx="2" fill="#BFB5A8"/>
+    <rect x="40" y="128" width="60" height="6" rx="2" fill="#BFB5A8"/>
+    <rect x="40" y="140" width="48" height="6" rx="2" fill="#BFB5A8"/>
+    <rect x="124" y="58" width="170" height="112" rx="6" fill="#FFFFFF"/>
+    <rect x="138" y="74" width="90" height="10" rx="3" fill="#2C001E"/>
+    <rect x="138" y="92" width="142" height="4" rx="2" fill="#BFB5A8"/>
+    <rect x="138" y="102" width="120" height="4" rx="2" fill="#BFB5A8"/>
+    <rect x="138" y="112" width="138" height="4" rx="2" fill="#BFB5A8"/>
+    <rect x="138" y="140" width="68" height="20" rx="4" fill="#2C001E"/>
+    <rect x="214" y="140" width="68" height="20" rx="4" fill="none" stroke="#8E867E" stroke-width="1"/>
+  `);
+  document.getElementById("thumb-mobile").innerHTML = thumb(`
+    <rect width="320" height="200" fill="#1A0011"/>
+    <rect x="100" y="14" width="120" height="172" rx="18" fill="#2C001E" stroke="#44032E" stroke-width="1"/>
+    <rect x="100" y="14" width="120" height="22" rx="18" fill="#1A0011"/>
+    <rect x="148" y="22" width="24" height="4" rx="2" fill="#44032E"/>
+    <rect x="112" y="46" width="48" height="8" rx="3" fill="#FFAE85"/>
+    <rect x="112" y="60" width="96" height="40" rx="6" fill="#44032E"/>
+    <rect x="120" y="68" width="36" height="6" rx="2" fill="#E95420"/>
+    <text x="120" y="92" font-family="Ubuntu" font-size="16" font-weight="300" fill="#fff">1,284</text>
+    <rect x="112" y="106" width="96" height="22" rx="6" fill="#44032E"/>
+    <rect x="118" y="113" width="44" height="4" rx="2" fill="#B9ACAE"/>
+    <rect x="118" y="120" width="60" height="3" rx="1.5" fill="#6B5B66"/>
+    <rect x="112" y="134" width="96" height="22" rx="6" fill="#44032E"/>
+    <rect x="118" y="141" width="50" height="4" rx="2" fill="#B9ACAE"/>
+    <rect x="118" y="148" width="64" height="3" rx="1.5" fill="#6B5B66"/>
+    <rect x="112" y="162" width="96" height="16" rx="6" fill="#E95420"/>
+    <rect x="142" y="167" width="36" height="6" rx="2" fill="#fff"/>
+  `);
+</script>
+
+</body>
+</html>
